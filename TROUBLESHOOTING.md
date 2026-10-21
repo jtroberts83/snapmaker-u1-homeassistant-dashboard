@@ -35,7 +35,7 @@ Find your symptom below. Most problems come from a wrong entity prefix, a missin
 
 ## Filament shows "No filament set" or "Sensor not found"
 
-- **"Sensor not found"**: the 12 REST filament sensors are missing or named differently. Confirm they exist in Developer Tools, States (`sensor.snapmaker_u1_tool1_filament_color`, and so on).
+- **"Sensor not found"**: the 12 REST filament sensors are missing or named differently. Confirm they exist in Developer Tools, States (`sensor.snapmaker_u1_tool_1_filament_color`, and so on).
 - **"No filament set"**: the printer reports no filament for that tool. The data comes from `print_task_config`, which is filled when a job is sliced with filament info (Snapmaker Orca/Luban) or when the spool is registered on the printer. Test: `http://<PRINTER_IP>:7125/printer/objects/query?print_task_config` should list `filament_color_rgba`, `filament_type` and `filament_vendor`.
 - Toolheads with an unregistered spool report `NONE`; that is expected.
 

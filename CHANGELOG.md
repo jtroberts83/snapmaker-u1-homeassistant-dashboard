@@ -2,6 +2,9 @@
 
 Every change to this repo is committed with a version bump (semantic versioning: MAJOR.MINOR.PATCH). The current version is in [`VERSION`](VERSION).
 
+## 1.1.0
+- New: Claude Skill (`skill/snapmaker-u1-setup/`) that walks users through the install via a Home Assistant MCP connection; README section explains how to install and use it. Docs: corrected the filament sensor example name (`tool_1`).
+
 ## 1.0.2
 - Docs: desktop screenshot now shows filament type and vendor (PETG, Generic) and colors in each toolhead box; README screenshot note updated.
 

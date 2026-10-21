@@ -41,6 +41,19 @@ Everything runs locally. No cloud service, no account other than your own Home A
 1. Read **[INSTALL.md](INSTALL.md)** and follow it top to bottom, about 30–45 minutes the first time. It covers installing Moonraker via HACS, the camera keep-alive, all sensors, the automations, Gmail setup and the dashboards.
 2. If something does not look right, check **[TROUBLESHOOTING.md](TROUBLESHOOTING.md)**.
 
+## Set it up with Claude (optional)
+
+If you use Claude and have a Home Assistant MCP connection, you can let Claude walk you through the whole install and do the steps it is able to do for you. The repo includes a Claude Skill for this: [`skill/snapmaker-u1-setup/SKILL.md`](skill/snapmaker-u1-setup/SKILL.md).
+
+**Install the skill**
+
+- *Claude app (claude.ai / desktop):* zip the skill folder, then add it under Settings, Capabilities (Skills). From the repo folder: `cd skill && zip -r snapmaker-u1-setup.zip snapmaker-u1-setup`.
+- *Claude Code:* copy the folder to `~/.claude/skills/snapmaker-u1-setup/` (or `.claude/skills/` in a project).
+
+**Use it:** make sure your Home Assistant MCP connection is on, then ask something like: *"Use the Snapmaker U1 setup skill to install this dashboard in my Home Assistant."* Claude checks what your connection can do, finds your printer entities, asks for your printer IP and notification entities, and then either makes the changes (with your OK for each) or gives you the exact text to paste.
+
+**What to expect:** Home Assistant's built-in MCP server mainly reads entities, so Claude will often hand you files and YAML to paste. Community Home Assistant MCP servers that can edit files, automations and dashboards let Claude do more. Either way, installing HACS items, restarting Home Assistant, and entering your Gmail App password stay with you. Claude asks before every change, never presses the printer's pause or E-STOP buttons, and never asks for your passwords or tokens.
+
 ## What is in this repository
 
 | Path | What it is |
@@ -52,6 +65,7 @@ Everything runs locally. No cloud service, no account other than your own Home A
 | `scripts/snapmaker_camera_pulse.py` | Keeps the U1 camera awake |
 | `automations/` | Camera keep-alive, thumbnail saver, print-finished notifications, progress emails |
 | `dashboards/desktop.yaml`, `dashboards/phone.yaml` | The two dashboards |
+| `skill/snapmaker-u1-setup/` | Claude Skill that guides the install through your Home Assistant MCP connection |
 | `docs/lifetime_comparisons.md` | The 100 filament comparisons |
 | `docs/background_options.html` | Preview of 8 dashboard background options (open in a browser) |
 
