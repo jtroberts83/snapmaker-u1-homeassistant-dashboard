@@ -2,6 +2,9 @@
 
 Every change to this repo is committed with a version bump (semantic versioning: MAJOR.MINOR.PATCH). The current version is in [`VERSION`](VERSION).
 
+## 1.2.1
+- Fix: an idle toolhead drifting a few degrees (for example from neighbouring heat) was shown as Heating. Heating now also requires heater power of at least 10%, and Cooling only applies at 120 °F and above. Idle toolheads show Sleeping (gray).
+
 ## 1.2.0
 - Dashboards: each toolhead column's background now follows its state: slate red while heating, slate blue while cooling or holding temperature, slate gray while sleeping/idle.
 
