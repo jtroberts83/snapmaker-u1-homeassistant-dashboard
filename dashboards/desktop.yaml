@@ -530,9 +530,9 @@ views:
                               {% else %}{% set stage = 'idle' %}{% endif %}
                               {% set sx = states('sensor.snapmaker_u1_print_stage') %}
                               {% if sx not in ['unknown', 'unavailable', 'none', ''] %}{% set stage = sx %}{% endif %}
-                              {% if stage == 'waiting' %}Ready for the next print
-                              {% elif s in ['printing','paused','complete'] %}{{ states('sensor.YOURPRINTER_filename') | replace('.gcode','') | replace('_',' ') }}
-                              {% else %}{{ {'standby':'Ready to print','cancelled':'Print cancelled','error':'Printer error'}.get(s, 'Snapmaker U1') }}{% endif %}
+                              {% set fn = states('sensor.YOURPRINTER_filename') | replace('.gcode','') | replace('_',' ') %}
+                              {% if stage in ['preparing','printing','paused','cooling','ready','error','cancelled'] and fn not in ['unknown','unavailable','none',''] %}{{ fn }}
+                              {% else %}No active job{% endif %}
                             secondary: >
                               {% set s = states('sensor.YOURPRINTER_current_print_state') %}
                               {% set ly = states('sensor.YOURPRINTER_current_layer') | float(0) %}
@@ -545,7 +545,7 @@ views:
                               {% else %}{% set stage = 'idle' %}{% endif %}
                               {% set sx = states('sensor.snapmaker_u1_print_stage') %}
                               {% if sx not in ['unknown', 'unavailable', 'none', ''] %}{% set stage = sx %}{% endif %}
-                              {{ {'preparing':'Preparing','printing':'Printing','paused':'Paused','cooling':'Cooling Bed · ' ~ pc ~ '%','ready':'Complete - Ready to remove print','waiting':'Waiting for new print job...','error':'Error','cancelled':'Cancelled','idle':'Standby · Snapmaker U1 · Basement'}[stage] }}
+                              {% if stage in ['preparing','printing','paused','cooling','ready','error','cancelled'] %}Current job{% else %}Snapmaker U1 is idle{% endif %}
                             icon: >
                               {% set s = states('sensor.YOURPRINTER_current_print_state') %}
                               {% set ly = states('sensor.YOURPRINTER_current_layer') | float(0) %}
