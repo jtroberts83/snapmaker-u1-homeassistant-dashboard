@@ -2,6 +2,9 @@
 
 Every change to this repo is committed with a version bump (semantic versioning: MAJOR.MINOR.PATCH). The current version is in [`VERSION`](VERSION).
 
+## 1.2.0
+- Dashboards: each toolhead column's background now follows its state: slate red while heating, slate blue while cooling or holding temperature, slate gray while sleeping/idle.
+
 ## 1.1.1
 - Camera keep-alive script replaced with the version that works on a real printer: it authenticates to the printer's WebSocket with your API key. The key is read from `/config/secrets.yaml` (`snapmaker_api_key`) and is never stored in the repo. INSTALL.md step 6 and TROUBLESHOOTING.md updated; Claude Skill updated.
 
