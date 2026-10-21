@@ -19,6 +19,7 @@
 #
 #  Values you must change: the word YOURPRINTER (your Moonraker entity prefix) and PRINTER_IP.
 #  customize.py does this for you; see INSTALL.md step 4.
+#  The camera script also needs  snapmaker_api_key: <your key>  in /config/secrets.yaml (INSTALL.md step 6b).
 # =====================================================================================
 
 shell_command:

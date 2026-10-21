@@ -89,8 +89,9 @@ After substituting, search the result for `YOUR` and `PRINTER_IP`. Nothing but c
 ## Step 5: camera and keep-alive
 
 1. The user (or you, if you can) adds the **Generic Camera** integration: still image URL `http://<PRINTER_IP>/server/files/camera/monitor.jpg`, no authentication, frame rate 1. The resulting entity must match `YOUR_CAMERA_ENTITY_ID`.
-2. Write `scripts/snapmaker_camera_pulse.py` to `/config/scripts/`. Then check that `shell_command.send_snapmaker_pulse` exists (it is defined in the package). "Action not found" means no full restart yet.
-3. Create the `camera_keepalive` automation. Offer a test run and have the user confirm the picture stays live for a few minutes. If it freezes, follow TROUBLESHOOTING.md "Camera".
+2. **API key (the user does this, you never handle it):** the keep-alive needs the printer's API key, shown on the printer's web page at its IP address. Have the user add the line `snapmaker_api_key: <key>` to `/config/secrets.yaml` themselves. Do not ask them to paste the key to you, and do not write it into any file. You can ask them to confirm they added it.
+3. Write `scripts/snapmaker_camera_pulse.py` to `/config/scripts/`. Then check that `shell_command.send_snapmaker_pulse` exists (it is defined in the package). "Action not found" means no full restart yet.
+4. Create the `camera_keepalive` automation. Offer a test run and have the user confirm the picture stays live for a few minutes. If it freezes, follow TROUBLESHOOTING.md "Camera".
 
 ## Step 6: automations
 

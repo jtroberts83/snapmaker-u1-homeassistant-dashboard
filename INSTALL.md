@@ -31,6 +31,7 @@ paste text into a file. No programming.
 You need:
 
 - Your U1 powered on and on your network. Find its **IP address** (the printer's touchscreen, Settings → Network, or your router's device list). Write it down. In your router, give the printer a **reserved/fixed IP** so it never changes.
+- Your printer's **API key** (needed for the camera keep-alive; you'll copy it in step 6b). You can find it by opening `http://<printer-ip>` in a browser.
 - Home Assistant running, and you can sign in as an administrator.
 - A way to **edit files in Home Assistant's `/config` folder**. Pick one:
   - **File editor** add-on (Settings → Add-ons → Add-on store → "File editor"), or
@@ -200,24 +201,36 @@ The U1's camera only produces fresh pictures while something keeps asking it to 
 
 At this point the picture may be broken or frozen. That's expected until the keep-alive runs.
 
-### 6b. The keep-alive (already installed in step 5)
+### 6b. Give the script your printer's API key
 
-Step 5 already installed two pieces: the script (`/config/scripts/snapmaker_camera_pulse.py`) and a `shell_command.send_snapmaker_pulse` that runs it with your printer's IP.
+The printer only accepts the keep-alive from a client that presents its **API key**.
+
+1. In a web browser, open your printer's page: `http://<printer-ip>`. Your API key is shown there (look in the settings/network area; where exactly can vary with the firmware version).
+2. Open **`/config/secrets.yaml`** in Home Assistant (File editor or Studio Code Server add-on; create the file if it does not exist) and add one line:
+
+   ```yaml
+   snapmaker_api_key: PASTE_YOUR_KEY_HERE
+   ```
+3. Save. The key stays in `secrets.yaml` on your Home Assistant and is not part of anything you upload or share. **Never put the key into the files of this repo or commit it to GitHub.**
+
+### 6c. Test the keep-alive (script and `shell_command` were installed in step 5)
+
+Step 5 already installed two pieces: the script (`/config/scripts/snapmaker_camera_pulse.py`) and a `shell_command.send_snapmaker_pulse` that runs it with your printer's IP. The script reads the key from `secrets.yaml`.
 
 **Test it:**
 
 1. **Developer Tools → Actions** → choose **`shell_command.send_snapmaker_pulse`** → **Perform action**.
-2. Look at the response. A good answer looks like:
+2. Look at the response. A good answer has `returncode: 0` and a `stdout` that starts with `Raw Printer Output:` followed by a JSON reply from the printer, for example:
 
    ```
-   stdout: '{"state": "success", "url": "/files/camera/monitor.jpg"}'
+   stdout: 'Raw Printer Output: ...{"jsonrpc":"2.0","result":{"state":"success",...},"id":1}'
    returncode: 0
    ```
 3. Now open the camera entity (Settings → Entities → *Snapmaker U1 Camera*). You should see the current picture of your printer.
 
-If you see *"Action shell_command.send_snapmaker_pulse not found"*, you haven't done a **full restart** since step 5. If the script prints `"state": "error"`, see [TROUBLESHOOTING.md](TROUBLESHOOTING.md#camera).
+If you see *"Action shell_command.send_snapmaker_pulse not found"*, you haven't done a **full restart** since step 5. If you get `returncode: 1`, or the output says the handshake was refused or no API key was found, see [TROUBLESHOOTING.md](TROUBLESHOOTING.md#camera).
 
-### 6c. Keep it alive automatically
+### 6d. Keep it alive automatically
 
 You'll do this in step 7 with `automations/camera_keepalive.yaml` (calls the script every minute).
 

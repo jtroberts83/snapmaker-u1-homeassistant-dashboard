@@ -19,11 +19,14 @@ Find your symptom below. Most problems come from a wrong entity prefix, a missin
 1. Confirm the script is in `/config/scripts/` and the `shell_command` from the package is loaded.
 2. **"Action shell_command.send_snapmaker_pulse not found"** means you have not done a *full restart* (Settings, System, Restart Home Assistant) since adding the package. A quick reload is not enough.
 3. Run the script by hand (from the Terminal add-on): `python3 /config/scripts/snapmaker_camera_pulse.py <PRINTER_IP>`.
-   - `"state": "success"` means it worked.
-   - `"state": "error"` or no output: the firmware may use a different method or parameters. Open `http://<PRINTER_IP>/` in a browser, open the developer tools Network tab, and watch the websocket messages the Snapmaker web UI sends when you open the camera view. Copy the method name and params into the script.
+   - A reply starting `Raw Printer Output:` with a JSON `result` means it worked.
+   - **"No API key found"**: add `snapmaker_api_key: <your key>` to `/config/secrets.yaml` (INSTALL.md step 6b).
+   - **"WebSocket handshake refused"**: the API key or the printer IP is wrong. Re-copy the key from `http://<PRINTER_IP>`.
+   - **"Connection Error"**: Home Assistant cannot reach the printer on port 80. Check the IP and network.
+   - Connects but still no picture: the firmware may use a different method or parameters. Open `http://<PRINTER_IP>/` in a browser, open the developer tools Network tab, and watch the websocket messages the Snapmaker web UI sends when you open the camera view. Copy the method name and params into the script.
 4. Check `http://<PRINTER_IP>/server/files/camera/monitor.jpg` directly in a browser. If you see an image right after running the script, the keep-alive is fine and the problem is the Generic Camera setup (still image URL, frame rate 1).
 
-> The script is a reconstruction built from the documented `camera.start_monitor` Moonraker method. If your firmware differs, adjust it as above and please open an issue or PR with the working values.
+> The script uses the `camera.start_monitor` method with `domain: lan`, authenticated with your printer's API key. If a firmware update changes it, adjust it as above and please open an issue or PR with the working values.
 
 ## Sensors show unavailable / unknown
 

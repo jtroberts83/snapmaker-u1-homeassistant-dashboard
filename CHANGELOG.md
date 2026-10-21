@@ -2,6 +2,9 @@
 
 Every change to this repo is committed with a version bump (semantic versioning: MAJOR.MINOR.PATCH). The current version is in [`VERSION`](VERSION).
 
+## 1.1.1
+- Camera keep-alive script replaced with the version that works on a real printer: it authenticates to the printer's WebSocket with your API key. The key is read from `/config/secrets.yaml` (`snapmaker_api_key`) and is never stored in the repo. INSTALL.md step 6 and TROUBLESHOOTING.md updated; Claude Skill updated.
+
 ## 1.1.0
 - New: Claude Skill (`skill/snapmaker-u1-setup/`) that walks users through the install via a Home Assistant MCP connection; README section explains how to install and use it. Docs: corrected the filament sensor example name (`tool_1`).
 
