@@ -625,6 +625,7 @@ views:
                             {% set v = states('sensor.snapmaker_u1_extruder_1_temp_f') | float(0) %}
                             {% set pw = states('sensor.YOURPRINTER_extruder_power') | float(0) %}
                             {% set st = 'heating' if (r > 2 and pw >= 10) else 'cooling' if (r < -2 and v >= 120) else 'holding' if v >= 150 else 'sleeping' %}
+                            {% set st = 'heating' if (st == 'holding' and v > 350) else st %}
                             {% set bg = {'heating': 'linear-gradient(#ef444440, #ef444440), #3d4859', 'sleeping': 'linear-gradient(#94a3b814, #94a3b814), #3f4650'}.get(st, 'linear-gradient(#38bdf826, #38bdf826), #3d4859') %}
                             {% set bc = {'heating': '#ef444499', 'sleeping': '#94a3b866'}.get(st, '#38bdf899') %}
                             #root {
@@ -659,7 +660,7 @@ views:
                               {% set mx = [states('sensor.snapmaker_u1_extruder_1_temp_f') | float(0), states('sensor.snapmaker_u1_extruder_2_temp_f') | float(0), states('sensor.snapmaker_u1_extruder_3_temp_f') | float(0), states('sensor.snapmaker_u1_extruder_4_temp_f') | float(0)] | max %}
                               {% set pw = states('sensor.YOURPRINTER_extruder_power') | float(0) %}
                               {% set st = 'heating' if (r > 2 and pw >= 10) else 'cooling' if (r < -2 and v >= 120) else 'holding' if v >= 150 else 'sleeping' %}
-                              {% set col = {'heating': '#ef4444', 'cooling': '#3b82f6', 'holding': ('#ef4444' if v >= mx else '#f59e0b'), 'sleeping': '#22c55e'}[st] %}
+                              {% set col = {'heating': '#ef4444', 'cooling': '#3b82f6', 'holding': ('#ef4444' if (v >= mx or v > 350) else '#f59e0b'), 'sleeping': '#22c55e'}[st] %}
                               {% set p = ([0, ([100, ((v - 50) / 550 * 100)] | min)] | max) | round(0) | int %}
                               {{ {'heating': 'mdi:fire', 'cooling': 'mdi:snowflake', 'holding': 'mdi:thermometer-check', 'sleeping': 'mdi:sleep'}[st] }}
                             icon_color: >
@@ -668,7 +669,7 @@ views:
                               {% set mx = [states('sensor.snapmaker_u1_extruder_1_temp_f') | float(0), states('sensor.snapmaker_u1_extruder_2_temp_f') | float(0), states('sensor.snapmaker_u1_extruder_3_temp_f') | float(0), states('sensor.snapmaker_u1_extruder_4_temp_f') | float(0)] | max %}
                               {% set pw = states('sensor.YOURPRINTER_extruder_power') | float(0) %}
                               {% set st = 'heating' if (r > 2 and pw >= 10) else 'cooling' if (r < -2 and v >= 120) else 'holding' if v >= 150 else 'sleeping' %}
-                              {% set col = {'heating': '#ef4444', 'cooling': '#3b82f6', 'holding': ('#ef4444' if v >= mx else '#f59e0b'), 'sleeping': '#22c55e'}[st] %}
+                              {% set col = {'heating': '#ef4444', 'cooling': '#3b82f6', 'holding': ('#ef4444' if (v >= mx or v > 350) else '#f59e0b'), 'sleeping': '#22c55e'}[st] %}
                               {% set p = ([0, ([100, ((v - 50) / 550 * 100)] | min)] | max) | round(0) | int %}
                               {{ col }}
                             primary: >
@@ -677,7 +678,7 @@ views:
                               {% set mx = [states('sensor.snapmaker_u1_extruder_1_temp_f') | float(0), states('sensor.snapmaker_u1_extruder_2_temp_f') | float(0), states('sensor.snapmaker_u1_extruder_3_temp_f') | float(0), states('sensor.snapmaker_u1_extruder_4_temp_f') | float(0)] | max %}
                               {% set pw = states('sensor.YOURPRINTER_extruder_power') | float(0) %}
                               {% set st = 'heating' if (r > 2 and pw >= 10) else 'cooling' if (r < -2 and v >= 120) else 'holding' if v >= 150 else 'sleeping' %}
-                              {% set col = {'heating': '#ef4444', 'cooling': '#3b82f6', 'holding': ('#ef4444' if v >= mx else '#f59e0b'), 'sleeping': '#22c55e'}[st] %}
+                              {% set col = {'heating': '#ef4444', 'cooling': '#3b82f6', 'holding': ('#ef4444' if (v >= mx or v > 350) else '#f59e0b'), 'sleeping': '#22c55e'}[st] %}
                               {% set p = ([0, ([100, ((v - 50) / 550 * 100)] | min)] | max) | round(0) | int %}
                               {% if is_number(states('sensor.snapmaker_u1_extruder_1_temp_f')) %}{{ v | round(0) | int }}°F{% else %}—{% endif %}
                             secondary: >
@@ -686,7 +687,7 @@ views:
                               {% set mx = [states('sensor.snapmaker_u1_extruder_1_temp_f') | float(0), states('sensor.snapmaker_u1_extruder_2_temp_f') | float(0), states('sensor.snapmaker_u1_extruder_3_temp_f') | float(0), states('sensor.snapmaker_u1_extruder_4_temp_f') | float(0)] | max %}
                               {% set pw = states('sensor.YOURPRINTER_extruder_power') | float(0) %}
                               {% set st = 'heating' if (r > 2 and pw >= 10) else 'cooling' if (r < -2 and v >= 120) else 'holding' if v >= 150 else 'sleeping' %}
-                              {% set col = {'heating': '#ef4444', 'cooling': '#3b82f6', 'holding': ('#ef4444' if v >= mx else '#f59e0b'), 'sleeping': '#22c55e'}[st] %}
+                              {% set col = {'heating': '#ef4444', 'cooling': '#3b82f6', 'holding': ('#ef4444' if (v >= mx or v > 350) else '#f59e0b'), 'sleeping': '#22c55e'}[st] %}
                               {% set p = ([0, ([100, ((v - 50) / 550 * 100)] | min)] | max) | round(0) | int %}
                               {{ {'heating': 'Heating ▲', 'cooling': 'Cooling ▼', 'holding': 'Holding', 'sleeping': 'Sleeping 💤'}[st] }} · {{ states('sensor.YOURPRINTER_extruder_power') | float(0) | round(0) | int }}%
                             tap_action:
@@ -698,7 +699,7 @@ views:
                                 {% set mx = [states('sensor.snapmaker_u1_extruder_1_temp_f') | float(0), states('sensor.snapmaker_u1_extruder_2_temp_f') | float(0), states('sensor.snapmaker_u1_extruder_3_temp_f') | float(0), states('sensor.snapmaker_u1_extruder_4_temp_f') | float(0)] | max %}
                                 {% set pw = states('sensor.YOURPRINTER_extruder_power') | float(0) %}
                                 {% set st = 'heating' if (r > 2 and pw >= 10) else 'cooling' if (r < -2 and v >= 120) else 'holding' if v >= 150 else 'sleeping' %}
-                                {% set col = {'heating': '#ef4444', 'cooling': '#3b82f6', 'holding': ('#ef4444' if v >= mx else '#f59e0b'), 'sleeping': '#22c55e'}[st] %}
+                                {% set col = {'heating': '#ef4444', 'cooling': '#3b82f6', 'holding': ('#ef4444' if (v >= mx or v > 350) else '#f59e0b'), 'sleeping': '#22c55e'}[st] %}
                                 {% set p = ([0, ([100, ((v - 50) / 550 * 100)] | min)] | max) | round(0) | int %}
                                 ha-card {
                                   zoom: 1.35;
@@ -758,6 +759,7 @@ views:
                             {% set v = states('sensor.snapmaker_u1_extruder_2_temp_f') | float(0) %}
                             {% set pw = states('sensor.YOURPRINTER_extruder1_power') | float(0) %}
                             {% set st = 'heating' if (r > 2 and pw >= 10) else 'cooling' if (r < -2 and v >= 120) else 'holding' if v >= 150 else 'sleeping' %}
+                            {% set st = 'heating' if (st == 'holding' and v > 350) else st %}
                             {% set bg = {'heating': 'linear-gradient(#ef444440, #ef444440), #3d4859', 'sleeping': 'linear-gradient(#94a3b814, #94a3b814), #3f4650'}.get(st, 'linear-gradient(#38bdf826, #38bdf826), #3d4859') %}
                             {% set bc = {'heating': '#ef444499', 'sleeping': '#94a3b866'}.get(st, '#38bdf899') %}
                             #root {
@@ -792,7 +794,7 @@ views:
                               {% set mx = [states('sensor.snapmaker_u1_extruder_1_temp_f') | float(0), states('sensor.snapmaker_u1_extruder_2_temp_f') | float(0), states('sensor.snapmaker_u1_extruder_3_temp_f') | float(0), states('sensor.snapmaker_u1_extruder_4_temp_f') | float(0)] | max %}
                               {% set pw = states('sensor.YOURPRINTER_extruder1_power') | float(0) %}
                               {% set st = 'heating' if (r > 2 and pw >= 10) else 'cooling' if (r < -2 and v >= 120) else 'holding' if v >= 150 else 'sleeping' %}
-                              {% set col = {'heating': '#ef4444', 'cooling': '#3b82f6', 'holding': ('#ef4444' if v >= mx else '#f59e0b'), 'sleeping': '#22c55e'}[st] %}
+                              {% set col = {'heating': '#ef4444', 'cooling': '#3b82f6', 'holding': ('#ef4444' if (v >= mx or v > 350) else '#f59e0b'), 'sleeping': '#22c55e'}[st] %}
                               {% set p = ([0, ([100, ((v - 50) / 550 * 100)] | min)] | max) | round(0) | int %}
                               {{ {'heating': 'mdi:fire', 'cooling': 'mdi:snowflake', 'holding': 'mdi:thermometer-check', 'sleeping': 'mdi:sleep'}[st] }}
                             icon_color: >
@@ -801,7 +803,7 @@ views:
                               {% set mx = [states('sensor.snapmaker_u1_extruder_1_temp_f') | float(0), states('sensor.snapmaker_u1_extruder_2_temp_f') | float(0), states('sensor.snapmaker_u1_extruder_3_temp_f') | float(0), states('sensor.snapmaker_u1_extruder_4_temp_f') | float(0)] | max %}
                               {% set pw = states('sensor.YOURPRINTER_extruder1_power') | float(0) %}
                               {% set st = 'heating' if (r > 2 and pw >= 10) else 'cooling' if (r < -2 and v >= 120) else 'holding' if v >= 150 else 'sleeping' %}
-                              {% set col = {'heating': '#ef4444', 'cooling': '#3b82f6', 'holding': ('#ef4444' if v >= mx else '#f59e0b'), 'sleeping': '#22c55e'}[st] %}
+                              {% set col = {'heating': '#ef4444', 'cooling': '#3b82f6', 'holding': ('#ef4444' if (v >= mx or v > 350) else '#f59e0b'), 'sleeping': '#22c55e'}[st] %}
                               {% set p = ([0, ([100, ((v - 50) / 550 * 100)] | min)] | max) | round(0) | int %}
                               {{ col }}
                             primary: >
@@ -810,7 +812,7 @@ views:
                               {% set mx = [states('sensor.snapmaker_u1_extruder_1_temp_f') | float(0), states('sensor.snapmaker_u1_extruder_2_temp_f') | float(0), states('sensor.snapmaker_u1_extruder_3_temp_f') | float(0), states('sensor.snapmaker_u1_extruder_4_temp_f') | float(0)] | max %}
                               {% set pw = states('sensor.YOURPRINTER_extruder1_power') | float(0) %}
                               {% set st = 'heating' if (r > 2 and pw >= 10) else 'cooling' if (r < -2 and v >= 120) else 'holding' if v >= 150 else 'sleeping' %}
-                              {% set col = {'heating': '#ef4444', 'cooling': '#3b82f6', 'holding': ('#ef4444' if v >= mx else '#f59e0b'), 'sleeping': '#22c55e'}[st] %}
+                              {% set col = {'heating': '#ef4444', 'cooling': '#3b82f6', 'holding': ('#ef4444' if (v >= mx or v > 350) else '#f59e0b'), 'sleeping': '#22c55e'}[st] %}
                               {% set p = ([0, ([100, ((v - 50) / 550 * 100)] | min)] | max) | round(0) | int %}
                               {% if is_number(states('sensor.snapmaker_u1_extruder_2_temp_f')) %}{{ v | round(0) | int }}°F{% else %}—{% endif %}
                             secondary: >
@@ -819,7 +821,7 @@ views:
                               {% set mx = [states('sensor.snapmaker_u1_extruder_1_temp_f') | float(0), states('sensor.snapmaker_u1_extruder_2_temp_f') | float(0), states('sensor.snapmaker_u1_extruder_3_temp_f') | float(0), states('sensor.snapmaker_u1_extruder_4_temp_f') | float(0)] | max %}
                               {% set pw = states('sensor.YOURPRINTER_extruder1_power') | float(0) %}
                               {% set st = 'heating' if (r > 2 and pw >= 10) else 'cooling' if (r < -2 and v >= 120) else 'holding' if v >= 150 else 'sleeping' %}
-                              {% set col = {'heating': '#ef4444', 'cooling': '#3b82f6', 'holding': ('#ef4444' if v >= mx else '#f59e0b'), 'sleeping': '#22c55e'}[st] %}
+                              {% set col = {'heating': '#ef4444', 'cooling': '#3b82f6', 'holding': ('#ef4444' if (v >= mx or v > 350) else '#f59e0b'), 'sleeping': '#22c55e'}[st] %}
                               {% set p = ([0, ([100, ((v - 50) / 550 * 100)] | min)] | max) | round(0) | int %}
                               {{ {'heating': 'Heating ▲', 'cooling': 'Cooling ▼', 'holding': 'Holding', 'sleeping': 'Sleeping 💤'}[st] }} · {{ states('sensor.YOURPRINTER_extruder1_power') | float(0) | round(0) | int }}%
                             tap_action:
@@ -831,7 +833,7 @@ views:
                                 {% set mx = [states('sensor.snapmaker_u1_extruder_1_temp_f') | float(0), states('sensor.snapmaker_u1_extruder_2_temp_f') | float(0), states('sensor.snapmaker_u1_extruder_3_temp_f') | float(0), states('sensor.snapmaker_u1_extruder_4_temp_f') | float(0)] | max %}
                                 {% set pw = states('sensor.YOURPRINTER_extruder1_power') | float(0) %}
                                 {% set st = 'heating' if (r > 2 and pw >= 10) else 'cooling' if (r < -2 and v >= 120) else 'holding' if v >= 150 else 'sleeping' %}
-                                {% set col = {'heating': '#ef4444', 'cooling': '#3b82f6', 'holding': ('#ef4444' if v >= mx else '#f59e0b'), 'sleeping': '#22c55e'}[st] %}
+                                {% set col = {'heating': '#ef4444', 'cooling': '#3b82f6', 'holding': ('#ef4444' if (v >= mx or v > 350) else '#f59e0b'), 'sleeping': '#22c55e'}[st] %}
                                 {% set p = ([0, ([100, ((v - 50) / 550 * 100)] | min)] | max) | round(0) | int %}
                                 ha-card {
                                   zoom: 1.35;
@@ -891,6 +893,7 @@ views:
                             {% set v = states('sensor.snapmaker_u1_extruder_3_temp_f') | float(0) %}
                             {% set pw = states('sensor.YOURPRINTER_extruder2_power') | float(0) %}
                             {% set st = 'heating' if (r > 2 and pw >= 10) else 'cooling' if (r < -2 and v >= 120) else 'holding' if v >= 150 else 'sleeping' %}
+                            {% set st = 'heating' if (st == 'holding' and v > 350) else st %}
                             {% set bg = {'heating': 'linear-gradient(#ef444440, #ef444440), #3d4859', 'sleeping': 'linear-gradient(#94a3b814, #94a3b814), #3f4650'}.get(st, 'linear-gradient(#38bdf826, #38bdf826), #3d4859') %}
                             {% set bc = {'heating': '#ef444499', 'sleeping': '#94a3b866'}.get(st, '#38bdf899') %}
                             #root {
@@ -925,7 +928,7 @@ views:
                               {% set mx = [states('sensor.snapmaker_u1_extruder_1_temp_f') | float(0), states('sensor.snapmaker_u1_extruder_2_temp_f') | float(0), states('sensor.snapmaker_u1_extruder_3_temp_f') | float(0), states('sensor.snapmaker_u1_extruder_4_temp_f') | float(0)] | max %}
                               {% set pw = states('sensor.YOURPRINTER_extruder2_power') | float(0) %}
                               {% set st = 'heating' if (r > 2 and pw >= 10) else 'cooling' if (r < -2 and v >= 120) else 'holding' if v >= 150 else 'sleeping' %}
-                              {% set col = {'heating': '#ef4444', 'cooling': '#3b82f6', 'holding': ('#ef4444' if v >= mx else '#f59e0b'), 'sleeping': '#22c55e'}[st] %}
+                              {% set col = {'heating': '#ef4444', 'cooling': '#3b82f6', 'holding': ('#ef4444' if (v >= mx or v > 350) else '#f59e0b'), 'sleeping': '#22c55e'}[st] %}
                               {% set p = ([0, ([100, ((v - 50) / 550 * 100)] | min)] | max) | round(0) | int %}
                               {{ {'heating': 'mdi:fire', 'cooling': 'mdi:snowflake', 'holding': 'mdi:thermometer-check', 'sleeping': 'mdi:sleep'}[st] }}
                             icon_color: >
@@ -934,7 +937,7 @@ views:
                               {% set mx = [states('sensor.snapmaker_u1_extruder_1_temp_f') | float(0), states('sensor.snapmaker_u1_extruder_2_temp_f') | float(0), states('sensor.snapmaker_u1_extruder_3_temp_f') | float(0), states('sensor.snapmaker_u1_extruder_4_temp_f') | float(0)] | max %}
                               {% set pw = states('sensor.YOURPRINTER_extruder2_power') | float(0) %}
                               {% set st = 'heating' if (r > 2 and pw >= 10) else 'cooling' if (r < -2 and v >= 120) else 'holding' if v >= 150 else 'sleeping' %}
-                              {% set col = {'heating': '#ef4444', 'cooling': '#3b82f6', 'holding': ('#ef4444' if v >= mx else '#f59e0b'), 'sleeping': '#22c55e'}[st] %}
+                              {% set col = {'heating': '#ef4444', 'cooling': '#3b82f6', 'holding': ('#ef4444' if (v >= mx or v > 350) else '#f59e0b'), 'sleeping': '#22c55e'}[st] %}
                               {% set p = ([0, ([100, ((v - 50) / 550 * 100)] | min)] | max) | round(0) | int %}
                               {{ col }}
                             primary: >
@@ -943,7 +946,7 @@ views:
                               {% set mx = [states('sensor.snapmaker_u1_extruder_1_temp_f') | float(0), states('sensor.snapmaker_u1_extruder_2_temp_f') | float(0), states('sensor.snapmaker_u1_extruder_3_temp_f') | float(0), states('sensor.snapmaker_u1_extruder_4_temp_f') | float(0)] | max %}
                               {% set pw = states('sensor.YOURPRINTER_extruder2_power') | float(0) %}
                               {% set st = 'heating' if (r > 2 and pw >= 10) else 'cooling' if (r < -2 and v >= 120) else 'holding' if v >= 150 else 'sleeping' %}
-                              {% set col = {'heating': '#ef4444', 'cooling': '#3b82f6', 'holding': ('#ef4444' if v >= mx else '#f59e0b'), 'sleeping': '#22c55e'}[st] %}
+                              {% set col = {'heating': '#ef4444', 'cooling': '#3b82f6', 'holding': ('#ef4444' if (v >= mx or v > 350) else '#f59e0b'), 'sleeping': '#22c55e'}[st] %}
                               {% set p = ([0, ([100, ((v - 50) / 550 * 100)] | min)] | max) | round(0) | int %}
                               {% if is_number(states('sensor.snapmaker_u1_extruder_3_temp_f')) %}{{ v | round(0) | int }}°F{% else %}—{% endif %}
                             secondary: >
@@ -952,7 +955,7 @@ views:
                               {% set mx = [states('sensor.snapmaker_u1_extruder_1_temp_f') | float(0), states('sensor.snapmaker_u1_extruder_2_temp_f') | float(0), states('sensor.snapmaker_u1_extruder_3_temp_f') | float(0), states('sensor.snapmaker_u1_extruder_4_temp_f') | float(0)] | max %}
                               {% set pw = states('sensor.YOURPRINTER_extruder2_power') | float(0) %}
                               {% set st = 'heating' if (r > 2 and pw >= 10) else 'cooling' if (r < -2 and v >= 120) else 'holding' if v >= 150 else 'sleeping' %}
-                              {% set col = {'heating': '#ef4444', 'cooling': '#3b82f6', 'holding': ('#ef4444' if v >= mx else '#f59e0b'), 'sleeping': '#22c55e'}[st] %}
+                              {% set col = {'heating': '#ef4444', 'cooling': '#3b82f6', 'holding': ('#ef4444' if (v >= mx or v > 350) else '#f59e0b'), 'sleeping': '#22c55e'}[st] %}
                               {% set p = ([0, ([100, ((v - 50) / 550 * 100)] | min)] | max) | round(0) | int %}
                               {{ {'heating': 'Heating ▲', 'cooling': 'Cooling ▼', 'holding': 'Holding', 'sleeping': 'Sleeping 💤'}[st] }} · {{ states('sensor.YOURPRINTER_extruder2_power') | float(0) | round(0) | int }}%
                             tap_action:
@@ -964,7 +967,7 @@ views:
                                 {% set mx = [states('sensor.snapmaker_u1_extruder_1_temp_f') | float(0), states('sensor.snapmaker_u1_extruder_2_temp_f') | float(0), states('sensor.snapmaker_u1_extruder_3_temp_f') | float(0), states('sensor.snapmaker_u1_extruder_4_temp_f') | float(0)] | max %}
                                 {% set pw = states('sensor.YOURPRINTER_extruder2_power') | float(0) %}
                                 {% set st = 'heating' if (r > 2 and pw >= 10) else 'cooling' if (r < -2 and v >= 120) else 'holding' if v >= 150 else 'sleeping' %}
-                                {% set col = {'heating': '#ef4444', 'cooling': '#3b82f6', 'holding': ('#ef4444' if v >= mx else '#f59e0b'), 'sleeping': '#22c55e'}[st] %}
+                                {% set col = {'heating': '#ef4444', 'cooling': '#3b82f6', 'holding': ('#ef4444' if (v >= mx or v > 350) else '#f59e0b'), 'sleeping': '#22c55e'}[st] %}
                                 {% set p = ([0, ([100, ((v - 50) / 550 * 100)] | min)] | max) | round(0) | int %}
                                 ha-card {
                                   zoom: 1.35;
@@ -1024,6 +1027,7 @@ views:
                             {% set v = states('sensor.snapmaker_u1_extruder_4_temp_f') | float(0) %}
                             {% set pw = states('sensor.YOURPRINTER_extruder3_power') | float(0) %}
                             {% set st = 'heating' if (r > 2 and pw >= 10) else 'cooling' if (r < -2 and v >= 120) else 'holding' if v >= 150 else 'sleeping' %}
+                            {% set st = 'heating' if (st == 'holding' and v > 350) else st %}
                             {% set bg = {'heating': 'linear-gradient(#ef444440, #ef444440), #3d4859', 'sleeping': 'linear-gradient(#94a3b814, #94a3b814), #3f4650'}.get(st, 'linear-gradient(#38bdf826, #38bdf826), #3d4859') %}
                             {% set bc = {'heating': '#ef444499', 'sleeping': '#94a3b866'}.get(st, '#38bdf899') %}
                             #root {
@@ -1058,7 +1062,7 @@ views:
                               {% set mx = [states('sensor.snapmaker_u1_extruder_1_temp_f') | float(0), states('sensor.snapmaker_u1_extruder_2_temp_f') | float(0), states('sensor.snapmaker_u1_extruder_3_temp_f') | float(0), states('sensor.snapmaker_u1_extruder_4_temp_f') | float(0)] | max %}
                               {% set pw = states('sensor.YOURPRINTER_extruder3_power') | float(0) %}
                               {% set st = 'heating' if (r > 2 and pw >= 10) else 'cooling' if (r < -2 and v >= 120) else 'holding' if v >= 150 else 'sleeping' %}
-                              {% set col = {'heating': '#ef4444', 'cooling': '#3b82f6', 'holding': ('#ef4444' if v >= mx else '#f59e0b'), 'sleeping': '#22c55e'}[st] %}
+                              {% set col = {'heating': '#ef4444', 'cooling': '#3b82f6', 'holding': ('#ef4444' if (v >= mx or v > 350) else '#f59e0b'), 'sleeping': '#22c55e'}[st] %}
                               {% set p = ([0, ([100, ((v - 50) / 550 * 100)] | min)] | max) | round(0) | int %}
                               {{ {'heating': 'mdi:fire', 'cooling': 'mdi:snowflake', 'holding': 'mdi:thermometer-check', 'sleeping': 'mdi:sleep'}[st] }}
                             icon_color: >
@@ -1067,7 +1071,7 @@ views:
                               {% set mx = [states('sensor.snapmaker_u1_extruder_1_temp_f') | float(0), states('sensor.snapmaker_u1_extruder_2_temp_f') | float(0), states('sensor.snapmaker_u1_extruder_3_temp_f') | float(0), states('sensor.snapmaker_u1_extruder_4_temp_f') | float(0)] | max %}
                               {% set pw = states('sensor.YOURPRINTER_extruder3_power') | float(0) %}
                               {% set st = 'heating' if (r > 2 and pw >= 10) else 'cooling' if (r < -2 and v >= 120) else 'holding' if v >= 150 else 'sleeping' %}
-                              {% set col = {'heating': '#ef4444', 'cooling': '#3b82f6', 'holding': ('#ef4444' if v >= mx else '#f59e0b'), 'sleeping': '#22c55e'}[st] %}
+                              {% set col = {'heating': '#ef4444', 'cooling': '#3b82f6', 'holding': ('#ef4444' if (v >= mx or v > 350) else '#f59e0b'), 'sleeping': '#22c55e'}[st] %}
                               {% set p = ([0, ([100, ((v - 50) / 550 * 100)] | min)] | max) | round(0) | int %}
                               {{ col }}
                             primary: >
@@ -1076,7 +1080,7 @@ views:
                               {% set mx = [states('sensor.snapmaker_u1_extruder_1_temp_f') | float(0), states('sensor.snapmaker_u1_extruder_2_temp_f') | float(0), states('sensor.snapmaker_u1_extruder_3_temp_f') | float(0), states('sensor.snapmaker_u1_extruder_4_temp_f') | float(0)] | max %}
                               {% set pw = states('sensor.YOURPRINTER_extruder3_power') | float(0) %}
                               {% set st = 'heating' if (r > 2 and pw >= 10) else 'cooling' if (r < -2 and v >= 120) else 'holding' if v >= 150 else 'sleeping' %}
-                              {% set col = {'heating': '#ef4444', 'cooling': '#3b82f6', 'holding': ('#ef4444' if v >= mx else '#f59e0b'), 'sleeping': '#22c55e'}[st] %}
+                              {% set col = {'heating': '#ef4444', 'cooling': '#3b82f6', 'holding': ('#ef4444' if (v >= mx or v > 350) else '#f59e0b'), 'sleeping': '#22c55e'}[st] %}
                               {% set p = ([0, ([100, ((v - 50) / 550 * 100)] | min)] | max) | round(0) | int %}
                               {% if is_number(states('sensor.snapmaker_u1_extruder_4_temp_f')) %}{{ v | round(0) | int }}°F{% else %}—{% endif %}
                             secondary: >
@@ -1085,7 +1089,7 @@ views:
                               {% set mx = [states('sensor.snapmaker_u1_extruder_1_temp_f') | float(0), states('sensor.snapmaker_u1_extruder_2_temp_f') | float(0), states('sensor.snapmaker_u1_extruder_3_temp_f') | float(0), states('sensor.snapmaker_u1_extruder_4_temp_f') | float(0)] | max %}
                               {% set pw = states('sensor.YOURPRINTER_extruder3_power') | float(0) %}
                               {% set st = 'heating' if (r > 2 and pw >= 10) else 'cooling' if (r < -2 and v >= 120) else 'holding' if v >= 150 else 'sleeping' %}
-                              {% set col = {'heating': '#ef4444', 'cooling': '#3b82f6', 'holding': ('#ef4444' if v >= mx else '#f59e0b'), 'sleeping': '#22c55e'}[st] %}
+                              {% set col = {'heating': '#ef4444', 'cooling': '#3b82f6', 'holding': ('#ef4444' if (v >= mx or v > 350) else '#f59e0b'), 'sleeping': '#22c55e'}[st] %}
                               {% set p = ([0, ([100, ((v - 50) / 550 * 100)] | min)] | max) | round(0) | int %}
                               {{ {'heating': 'Heating ▲', 'cooling': 'Cooling ▼', 'holding': 'Holding', 'sleeping': 'Sleeping 💤'}[st] }} · {{ states('sensor.YOURPRINTER_extruder3_power') | float(0) | round(0) | int }}%
                             tap_action:
@@ -1097,7 +1101,7 @@ views:
                                 {% set mx = [states('sensor.snapmaker_u1_extruder_1_temp_f') | float(0), states('sensor.snapmaker_u1_extruder_2_temp_f') | float(0), states('sensor.snapmaker_u1_extruder_3_temp_f') | float(0), states('sensor.snapmaker_u1_extruder_4_temp_f') | float(0)] | max %}
                                 {% set pw = states('sensor.YOURPRINTER_extruder3_power') | float(0) %}
                                 {% set st = 'heating' if (r > 2 and pw >= 10) else 'cooling' if (r < -2 and v >= 120) else 'holding' if v >= 150 else 'sleeping' %}
-                                {% set col = {'heating': '#ef4444', 'cooling': '#3b82f6', 'holding': ('#ef4444' if v >= mx else '#f59e0b'), 'sleeping': '#22c55e'}[st] %}
+                                {% set col = {'heating': '#ef4444', 'cooling': '#3b82f6', 'holding': ('#ef4444' if (v >= mx or v > 350) else '#f59e0b'), 'sleeping': '#22c55e'}[st] %}
                                 {% set p = ([0, ([100, ((v - 50) / 550 * 100)] | min)] | max) | round(0) | int %}
                                 ha-card {
                                   zoom: 1.35;
