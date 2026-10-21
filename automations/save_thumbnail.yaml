@@ -1,0 +1,36 @@
+# Snapmaker U1 - save the print preview
+# The printer's own thumbnail can disappear the moment a print completes. This saves a copy while
+# the print runs so the dashboard can keep showing it through the cooling and "ready" stages.
+# Saved to /config/www/snapmaker_u1_thumb.jpg  (served as /local/snapmaker_u1_thumb.jpg).
+# Needs sensor.snapmaker_u1_print_stage (from packages/snapmaker_u1.yaml).
+
+alias: Snapmaker U1 - Save Print Thumbnail
+description: Saves the print preview image while a print is running.
+mode: single
+max_exceeded: silent
+
+triggers:
+  - trigger: state
+    entity_id: sensor.snapmaker_u1_print_stage
+    to: printing
+    for: "00:00:20"
+  # Also after a Home Assistant restart in the middle of a print
+  - trigger: homeassistant
+    event: start
+
+conditions:
+  - condition: state
+    entity_id: sensor.snapmaker_u1_print_stage
+    state:
+      - preparing
+      - printing
+      - paused
+
+actions:
+  - delay: "00:00:20"
+  - action: camera.snapshot
+    continue_on_error: true
+    target:
+      entity_id: camera.YOURPRINTER_thumbnail
+    data:
+      filename: /config/www/snapmaker_u1_thumb.jpg

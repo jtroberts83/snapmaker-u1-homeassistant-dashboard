@@ -1,0 +1,21 @@
+# Snapmaker U1 - camera keep-alive
+# Calls the pulse script every minute so the camera keeps producing fresh pictures.
+# Add via Settings -> Automations & scenes -> Create automation -> (three dots) -> Edit in YAML.
+
+alias: Snapmaker U1 - Camera Keep-Alive
+description: Keeps the Snapmaker U1 camera awake so the live view and snapshots stay current.
+mode: single
+max_exceeded: silent
+
+triggers:
+  - trigger: time_pattern
+    minutes: "/1"
+
+conditions:
+  # Skip while the printer is off or unreachable
+  - condition: template
+    value_template: "{{ states('sensor.YOURPRINTER_current_print_state') not in ['unavailable', 'unknown'] }}"
+
+actions:
+  - action: shell_command.send_snapmaker_pulse
+    continue_on_error: true

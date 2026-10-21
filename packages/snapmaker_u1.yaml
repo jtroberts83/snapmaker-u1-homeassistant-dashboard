@@ -1,0 +1,280 @@
+# =====================================================================================
+#  Snapmaker U1 - Home Assistant package
+#  Everything the dashboards and automations need, in ONE file.
+#
+#  Copy this file to  /config/packages/snapmaker_u1.yaml  and make sure configuration.yaml has
+#
+#      homeassistant:
+#        packages: !include_dir_named packages
+#
+#  (see INSTALL.md, step 5). Then do a FULL Home Assistant restart.
+#
+#  It creates:
+#    - shell_command.send_snapmaker_pulse          camera keep-alive (see scripts/)
+#    - 6 Fahrenheit temperature sensors            sensor.snapmaker_u1_*_temp_f
+#    - sensor.snapmaker_u1_print_stage             preparing / printing / cooling / ready / waiting ...
+#    - sensor.snapmaker_u1_bed_peak_temp_f         start point of the bed-cooling progress bar
+#    - 5 trend (derivative) sensors                tool 1-4 + bed, deg F per minute
+#    - 12 REST sensors                             filament color / type / vendor per toolhead
+#
+#  Values you must change: the word YOURPRINTER (your Moonraker entity prefix) and PRINTER_IP.
+#  customize.py does this for you; see INSTALL.md step 4.
+# =====================================================================================
+
+shell_command:
+  send_snapmaker_pulse: "python3 /config/scripts/snapmaker_camera_pulse.py PRINTER_IP"
+
+# ----- Fahrenheit sensors + print stage + bed peak -------------------------------------
+template:
+  - sensor:
+      - name: "Snapmaker U1 Bed Temp F"
+        unique_id: snapmaker_u1_bed_temp_f
+        unit_of_measurement: "°F"
+        device_class: temperature
+        state_class: measurement
+        availability: "{{ states('sensor.YOURPRINTER_bed_temperature') | is_number }}"
+        state: >
+          {% set e = 'sensor.YOURPRINTER_bed_temperature' %}
+          {% set v = states(e) | float(0) %}
+          {% if state_attr(e, 'unit_of_measurement') == '°F' %}{{ v | round(1) }}{% else %}{{ (v * 9 / 5 + 32) | round(1) }}{% endif %}
+
+      - name: "Snapmaker U1 Cavity Temp F"
+        unique_id: snapmaker_u1_cavity_temp_f
+        unit_of_measurement: "°F"
+        device_class: temperature
+        state_class: measurement
+        availability: "{{ states('sensor.YOURPRINTER_cavity_temp') | is_number }}"
+        state: >
+          {% set e = 'sensor.YOURPRINTER_cavity_temp' %}
+          {% set v = states(e) | float(0) %}
+          {% if state_attr(e, 'unit_of_measurement') == '°F' %}{{ v | round(1) }}{% else %}{{ (v * 9 / 5 + 32) | round(1) }}{% endif %}
+
+      - name: "Snapmaker U1 Extruder 1 Temp F"
+        unique_id: snapmaker_u1_extruder_1_temp_f
+        unit_of_measurement: "°F"
+        device_class: temperature
+        state_class: measurement
+        availability: "{{ states('sensor.YOURPRINTER_extruder_temperature') | is_number }}"
+        state: >
+          {% set e = 'sensor.YOURPRINTER_extruder_temperature' %}
+          {% set v = states(e) | float(0) %}
+          {% if state_attr(e, 'unit_of_measurement') == '°F' %}{{ v | round(1) }}{% else %}{{ (v * 9 / 5 + 32) | round(1) }}{% endif %}
+
+      - name: "Snapmaker U1 Extruder 2 Temp F"
+        unique_id: snapmaker_u1_extruder_2_temp_f
+        unit_of_measurement: "°F"
+        device_class: temperature
+        state_class: measurement
+        availability: "{{ states('sensor.YOURPRINTER_extruder1_temperature') | is_number }}"
+        state: >
+          {% set e = 'sensor.YOURPRINTER_extruder1_temperature' %}
+          {% set v = states(e) | float(0) %}
+          {% if state_attr(e, 'unit_of_measurement') == '°F' %}{{ v | round(1) }}{% else %}{{ (v * 9 / 5 + 32) | round(1) }}{% endif %}
+
+      - name: "Snapmaker U1 Extruder 3 Temp F"
+        unique_id: snapmaker_u1_extruder_3_temp_f
+        unit_of_measurement: "°F"
+        device_class: temperature
+        state_class: measurement
+        availability: "{{ states('sensor.YOURPRINTER_extruder2_temperature') | is_number }}"
+        state: >
+          {% set e = 'sensor.YOURPRINTER_extruder2_temperature' %}
+          {% set v = states(e) | float(0) %}
+          {% if state_attr(e, 'unit_of_measurement') == '°F' %}{{ v | round(1) }}{% else %}{{ (v * 9 / 5 + 32) | round(1) }}{% endif %}
+
+      - name: "Snapmaker U1 Extruder 4 Temp F"
+        unique_id: snapmaker_u1_extruder_4_temp_f
+        unit_of_measurement: "°F"
+        device_class: temperature
+        state_class: measurement
+        availability: "{{ states('sensor.YOURPRINTER_extruder3_temperature') | is_number }}"
+        state: >
+          {% set e = 'sensor.YOURPRINTER_extruder3_temperature' %}
+          {% set v = states(e) | float(0) %}
+          {% if state_attr(e, 'unit_of_measurement') == '°F' %}{{ v | round(1) }}{% else %}{{ (v * 9 / 5 + 32) | round(1) }}{% endif %}
+
+  - triggers:
+      - trigger: state
+        entity_id:
+          - sensor.YOURPRINTER_current_print_state
+          - sensor.YOURPRINTER_current_layer
+          - sensor.snapmaker_u1_bed_temp_f
+      - trigger: time_pattern
+        minutes: "/1"
+    sensor:
+      - name: "Snapmaker U1 Print Stage"
+        unique_id: snapmaker_u1_print_stage
+        icon: mdi:printer-3d
+        state: >
+          {% set s = states('sensor.YOURPRINTER_current_print_state') %}
+          {% set ly = states('sensor.YOURPRINTER_current_layer') | float(0) %}
+          {% set bed = states('sensor.snapmaker_u1_bed_temp_f') | float(999) %}
+          {% if s == 'printing' %}{{ 'preparing' if ly <= 0 else 'printing' }}
+          {% elif s == 'paused' %}paused
+          {% elif s == 'complete' %}
+          {% if bed > 104 %}cooling
+          {% else %}
+          {% set rt = as_datetime(this.attributes.get('ready_since'), none) %}
+          {% if rt is not none and (now() - rt).total_seconds() >= 1800 %}waiting{% else %}ready{% endif %}
+          {% endif %}
+          {% elif s in ['error', 'cancelled'] %}{{ s }}
+          {% else %}idle{% endif %}
+        attributes:
+          ready_since: >
+            {% set s = states('sensor.YOURPRINTER_current_print_state') %}
+            {% set bed = states('sensor.snapmaker_u1_bed_temp_f') | float(999) %}
+            {% if s == 'complete' and bed <= 104 %}{{ this.attributes.get('ready_since') or now().isoformat() }}{% else %}{{ none }}{% endif %}
+
+  - triggers:
+      - trigger: state
+        entity_id: sensor.snapmaker_u1_bed_temp_f
+    sensor:
+      - name: "Snapmaker U1 Bed Peak Temp F"
+        unique_id: snapmaker_u1_bed_peak_temp_f
+        device_class: temperature
+        unit_of_measurement: "°F"
+        state: >
+          {% set b = states('sensor.snapmaker_u1_bed_temp_f') | float(none) %}
+          {% set p = this.state | float(none) %}
+          {% if b is none %}{{ p if p is not none else 0 }}
+          {% elif b <= 104 or p is none %}{{ b | round(1) }}
+          {% else %}{{ [b, p] | max | round(1) }}{% endif %}
+
+# ----- Trend sensors (deg F per minute) -------------------------------------------------
+# Rule used by the dashboard for tools: above +2 = Heating, below -2 = Cooling.
+# Bed: above +0.5 = Heating, below -0.5 (and above 104 F) = Cooling.
+sensor:
+  - platform: derivative
+    name: "Snapmaker U1 Tool 1 Temp Rate"
+    unique_id: snapmaker_u1_tool_1_temp_rate
+    source: sensor.snapmaker_u1_extruder_1_temp_f
+    unit_time: min
+    time_window: "00:01:00"
+    max_sub_interval: "00:00:30"
+    round: 1
+
+  - platform: derivative
+    name: "Snapmaker U1 Tool 2 Temp Rate"
+    unique_id: snapmaker_u1_tool_2_temp_rate
+    source: sensor.snapmaker_u1_extruder_2_temp_f
+    unit_time: min
+    time_window: "00:01:00"
+    max_sub_interval: "00:00:30"
+    round: 1
+
+  - platform: derivative
+    name: "Snapmaker U1 Tool 3 Temp Rate"
+    unique_id: snapmaker_u1_tool_3_temp_rate
+    source: sensor.snapmaker_u1_extruder_3_temp_f
+    unit_time: min
+    time_window: "00:01:00"
+    max_sub_interval: "00:00:30"
+    round: 1
+
+  - platform: derivative
+    name: "Snapmaker U1 Tool 4 Temp Rate"
+    unique_id: snapmaker_u1_tool_4_temp_rate
+    source: sensor.snapmaker_u1_extruder_4_temp_f
+    unit_time: min
+    time_window: "00:01:00"
+    max_sub_interval: "00:00:30"
+    round: 1
+
+  - platform: derivative
+    name: "Snapmaker U1 Bed Temp Rate"
+    unique_id: snapmaker_u1_bed_temp_rate
+    source: sensor.snapmaker_u1_bed_temp_f
+    unit_time: min
+    time_window: "00:02:00"
+    max_sub_interval: "00:00:30"
+    round: 1
+
+# ----- Filament color / type / vendor per toolhead (read from Moonraker over HTTP) ------
+rest:
+  - resource: http://PRINTER_IP:7125/printer/objects/query?print_task_config=filament_vendor,filament_type,filament_sub_type,filament_color_rgba,filament_exist
+    scan_interval: 30
+    sensor:
+      - name: "Snapmaker U1 Tool 1 Filament Color"
+        unique_id: snapmaker_u1_tool_1_filament_color
+        value_template: >
+          {% set s = value_json.result.status.print_task_config %}
+          {% set c = (s.filament_color_rgba | default([]))[0] | default('') %}
+          {% set h = ('%08x' % (c | int(0))) if c is number else (c | string | replace('#', '')) %}
+          {% set t = (s.filament_type | default([]))[0] | default('NONE') %}
+          {% set here = (s.filament_exist | default([true, true, true, true]))[0] | default(true) %}
+          {% if here and h | length >= 6 and not (t in ['NONE', ''] and h[:6] | lower == 'ffffff') %}#{{ h[:6] | lower }}{% else %}none{% endif %}
+      - name: "Snapmaker U1 Tool 1 Filament Type"
+        unique_id: snapmaker_u1_tool_1_filament_type
+        value_template: >
+          {% set s = value_json.result.status.print_task_config %}
+          {% set t = (s.filament_type | default([]))[0] | default('NONE') %}
+          {% set sub = (s.filament_sub_type | default([]))[0] | default('NONE') %}
+          {% if t in ['NONE', ''] %}none{% else %}{{ t }}{{ (' ' ~ sub) if sub not in ['NONE', '', 'Basic'] else '' }}{% endif %}
+      - name: "Snapmaker U1 Tool 2 Filament Color"
+        unique_id: snapmaker_u1_tool_2_filament_color
+        value_template: >
+          {% set s = value_json.result.status.print_task_config %}
+          {% set c = (s.filament_color_rgba | default([]))[1] | default('') %}
+          {% set h = ('%08x' % (c | int(0))) if c is number else (c | string | replace('#', '')) %}
+          {% set t = (s.filament_type | default([]))[1] | default('NONE') %}
+          {% set here = (s.filament_exist | default([true, true, true, true]))[1] | default(true) %}
+          {% if here and h | length >= 6 and not (t in ['NONE', ''] and h[:6] | lower == 'ffffff') %}#{{ h[:6] | lower }}{% else %}none{% endif %}
+      - name: "Snapmaker U1 Tool 2 Filament Type"
+        unique_id: snapmaker_u1_tool_2_filament_type
+        value_template: >
+          {% set s = value_json.result.status.print_task_config %}
+          {% set t = (s.filament_type | default([]))[1] | default('NONE') %}
+          {% set sub = (s.filament_sub_type | default([]))[1] | default('NONE') %}
+          {% if t in ['NONE', ''] %}none{% else %}{{ t }}{{ (' ' ~ sub) if sub not in ['NONE', '', 'Basic'] else '' }}{% endif %}
+      - name: "Snapmaker U1 Tool 3 Filament Color"
+        unique_id: snapmaker_u1_tool_3_filament_color
+        value_template: >
+          {% set s = value_json.result.status.print_task_config %}
+          {% set c = (s.filament_color_rgba | default([]))[2] | default('') %}
+          {% set h = ('%08x' % (c | int(0))) if c is number else (c | string | replace('#', '')) %}
+          {% set t = (s.filament_type | default([]))[2] | default('NONE') %}
+          {% set here = (s.filament_exist | default([true, true, true, true]))[2] | default(true) %}
+          {% if here and h | length >= 6 and not (t in ['NONE', ''] and h[:6] | lower == 'ffffff') %}#{{ h[:6] | lower }}{% else %}none{% endif %}
+      - name: "Snapmaker U1 Tool 3 Filament Type"
+        unique_id: snapmaker_u1_tool_3_filament_type
+        value_template: >
+          {% set s = value_json.result.status.print_task_config %}
+          {% set t = (s.filament_type | default([]))[2] | default('NONE') %}
+          {% set sub = (s.filament_sub_type | default([]))[2] | default('NONE') %}
+          {% if t in ['NONE', ''] %}none{% else %}{{ t }}{{ (' ' ~ sub) if sub not in ['NONE', '', 'Basic'] else '' }}{% endif %}
+      - name: "Snapmaker U1 Tool 4 Filament Color"
+        unique_id: snapmaker_u1_tool_4_filament_color
+        value_template: >
+          {% set s = value_json.result.status.print_task_config %}
+          {% set c = (s.filament_color_rgba | default([]))[3] | default('') %}
+          {% set h = ('%08x' % (c | int(0))) if c is number else (c | string | replace('#', '')) %}
+          {% set t = (s.filament_type | default([]))[3] | default('NONE') %}
+          {% set here = (s.filament_exist | default([true, true, true, true]))[3] | default(true) %}
+          {% if here and h | length >= 6 and not (t in ['NONE', ''] and h[:6] | lower == 'ffffff') %}#{{ h[:6] | lower }}{% else %}none{% endif %}
+      - name: "Snapmaker U1 Tool 4 Filament Type"
+        unique_id: snapmaker_u1_tool_4_filament_type
+        value_template: >
+          {% set s = value_json.result.status.print_task_config %}
+          {% set t = (s.filament_type | default([]))[3] | default('NONE') %}
+          {% set sub = (s.filament_sub_type | default([]))[3] | default('NONE') %}
+          {% if t in ['NONE', ''] %}none{% else %}{{ t }}{{ (' ' ~ sub) if sub not in ['NONE', '', 'Basic'] else '' }}{% endif %}
+      - name: "Snapmaker U1 Tool 1 Filament Vendor"
+        unique_id: snapmaker_u1_tool_1_filament_vendor
+        value_template: >
+          {% set v = (value_json.result.status.print_task_config.filament_vendor | default([]))[0] | default('NONE') %}
+          {{ 'none' if v in ['NONE', ''] else v }}
+      - name: "Snapmaker U1 Tool 2 Filament Vendor"
+        unique_id: snapmaker_u1_tool_2_filament_vendor
+        value_template: >
+          {% set v = (value_json.result.status.print_task_config.filament_vendor | default([]))[1] | default('NONE') %}
+          {{ 'none' if v in ['NONE', ''] else v }}
+      - name: "Snapmaker U1 Tool 3 Filament Vendor"
+        unique_id: snapmaker_u1_tool_3_filament_vendor
+        value_template: >
+          {% set v = (value_json.result.status.print_task_config.filament_vendor | default([]))[2] | default('NONE') %}
+          {{ 'none' if v in ['NONE', ''] else v }}
+      - name: "Snapmaker U1 Tool 4 Filament Vendor"
+        unique_id: snapmaker_u1_tool_4_filament_vendor
+        value_template: >
+          {% set v = (value_json.result.status.print_task_config.filament_vendor | default([]))[3] | default('NONE') %}
+          {{ 'none' if v in ['NONE', ''] else v }}

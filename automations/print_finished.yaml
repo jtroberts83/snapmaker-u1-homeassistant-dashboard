@@ -1,0 +1,167 @@
+# Snapmaker U1 - Print Finished
+#
+# When a print completes: waits for the bed to cool to 40 C (104 F) or below, then
+#   1. emails you with the finished-print photo in the body   (optional: needs the SMTP integration)
+#   2. pushes to your phone                                   (optional)
+#   3. adds a persistent notification with the photo
+#   4. announces on a speaker, 08:00-21:30 only               (optional)
+#
+# customize.py fills in YOUR_EMAIL_NOTIFY / YOUR_PHONE_NOTIFY / YOUR_SPEAKER_NOTIFY and deletes the
+# blocks between the BEGIN:/END: comment lines for anything you leave blank.
+#
+# Phone notes: YOUR_PHONE_NOTIFY is a notify *entity* (notify.<your_phone>). Entity-style pushes carry a title
+# and text only. If you want the photo and a tap action in the push, use the older
+# notify.mobile_app_<your_phone> action instead (see the commented example in the PHONE block).
+#
+# Add via Settings -> Automations & scenes -> Create automation -> (three dots) -> Edit in YAML.
+
+alias: Snapmaker U1 - Print Finished
+description: When a print completes, waits for the bed to cool to 40 C or below, then emails a photo and stats, pushes to the phone, adds a persistent notification and announces on a speaker.
+mode: single
+max_exceeded: silent
+
+triggers:
+  - trigger: state
+    entity_id: sensor.YOURPRINTER_current_print_state
+    to: complete
+    not_from:
+      - unavailable
+      - unknown
+
+actions:
+  # Photo of the finished print for the persistent notification (non-fatal if it fails)
+  - action: camera.snapshot
+    continue_on_error: true
+    target:
+      entity_id: YOUR_CAMERA_ENTITY_ID
+    data:
+      filename: /config/www/snapmaker_u1_done.jpg
+
+  # Capture job details now, in case the sensors reset while the bed cools
+  - variables:
+      job: "{{ states('sensor.YOURPRINTER_filename') }}"
+      name: "{{ states('sensor.YOURPRINTER_filename') | replace('.gcode', '') | replace('_', ' ') }}"
+      layers: "{{ states('sensor.YOURPRINTER_total_layer') }}"
+      filament: "{{ states('sensor.YOURPRINTER_filament_used') }}"
+      filament_r: "{{ states('sensor.YOURPRINTER_filament_used') | float(0) | round(1) }}"
+      jobs: "{{ states('sensor.YOURPRINTER_totals_jobs') | float(0) | int }}"
+      tot_fil: "{{ states('sensor.YOURPRINTER_totals_filament_used') | float(0) | round(1) }}"
+      fun: >-
+        {% set v = states('sensor.YOURPRINTER_filament_used') | float(0) %}
+        {% set obj = [
+         [0.15,'the length of a smartphone'], [0.3,'the length of a school ruler'],
+         [0.55,'the height of a carry-on suitcase'], [0.86,'the length of a baseball bat'],
+         [1.0,'the length of an acoustic guitar'], [1.8,'the height of a tall person'],
+         [2.0,'the length of a king-size bed'], [2.4,"the height of a giraffe's neck"],
+         [3.05,'the height of a basketball hoop'], [4.7,'the length of a family car'],
+         [10.7,'the length of a school bus'], [12.2,'the length of a shipping container'],
+         [18.3,'the length of a bowling lane'], [23.8,'the length of a tennis court'],
+         [27.0,'the length of a blue whale'], [39.5,'the length of a Boeing 737'],
+         [50.0,'the length of an Olympic swimming pool'], [70.7,'the length of a Boeing 747'],
+         [91.4,'a football field, goal line to goal line'], [93.0,'the height of the Statue of Liberty'],
+         [109.7,'the length of a football field, end zone to end zone'],
+         [146.6,'the height of the Great Pyramid of Giza'], [169.0,'the height of the Washington Monument'],
+         [330.0,'the height of the Eiffel Tower'], [381.0,'the height of the Empire State Building'],
+         [508.0,'the height of Taipei 101'], [828.0,'the height of the Burj Khalifa'],
+         [1000.0,'one kilometer'], [1609.0,'one mile'], [2737.0,'the length of the Golden Gate Bridge'],
+         [5000.0,'a 5K race'], [8849.0,'the height of Mount Everest'], [10000.0,'a 10K race'],
+         [21097.0,'a half marathon'], [42195.0,'a full marathon'] ] %}
+        {% set ns = namespace(L=0, n='') %}
+        {% for o in obj %}{% if v >= o[0] %}{% set ns.L = o[0] %}{% set ns.n = o[1] %}{% endif %}{% endfor %}
+        {% if v <= 0 %}Nothing extruded yet
+        {% elif ns.L == 0 %}Just getting started, still shorter than a smartphone
+        {% else %}{% set r = v / ns.L %}
+        {% if r < 1.25 %}≈ {{ ns.n }}!
+        {% else %}≈ {{ (r | round(1)) if r < 10 else (r | round(0) | int) }}× {{ ns.n }}!{% endif %}
+        {% endif %}
+
+  # Wait for the bed to cool to 40 C (104 F) or below - that's the real "safe to remove" signal.
+  # Continues immediately if already cool. Gives up after 3 hours and notifies anyway
+  # (the message then says the bed is still warm). Stops quietly if a new print starts.
+  - wait_template: >-
+      {{ (states('sensor.snapmaker_u1_bed_temp_f') | float(999) <= 104)
+         or not is_state('sensor.YOURPRINTER_current_print_state', 'complete') }}
+    timeout: "03:00:00"
+    continue_on_timeout: true
+
+  - condition: state
+    entity_id: sensor.YOURPRINTER_current_print_state
+    state: complete
+
+  - variables:
+      bed_f: "{{ states('sensor.snapmaker_u1_bed_temp_f') | float(0) | round(0) | int }}"
+      bed_c: "{{ ((states('sensor.snapmaker_u1_bed_temp_f') | float(0) - 32) * 5 / 9) | round(0) | int }}"
+      cooled: "{{ states('sensor.snapmaker_u1_bed_temp_f') | float(999) <= 104 }}"
+      cavity: "{{ states('sensor.snapmaker_u1_cavity_temp_f') | float(0) | round(0) | int }}"
+      t1: "{{ states('sensor.snapmaker_u1_extruder_1_temp_f') | float(0) | round(0) | int }}"
+      t2: "{{ states('sensor.snapmaker_u1_extruder_2_temp_f') | float(0) | round(0) | int }}"
+      t3: "{{ states('sensor.snapmaker_u1_extruder_3_temp_f') | float(0) | round(0) | int }}"
+      t4: "{{ states('sensor.snapmaker_u1_extruder_4_temp_f') | float(0) | round(0) | int }}"
+      msg: >-
+        {% if cooled %}{{ job }} is done and the bed has cooled to {{ bed_c }}°C ({{ bed_f }}°F) - safe to remove. {{ layers }} layers, {{ filament }} m of filament.{% else %}{{ job }} is done, but the bed is still warm ({{ bed_c }}°C / {{ bed_f }}°F). {{ layers }} layers, {{ filament }} m of filament.{% endif %}
+
+  # BEGIN:EMAIL
+  # Email with the live camera photo embedded in the body
+  - action: smtp.send_message
+    continue_on_error: true
+    target:
+      entity_id: YOUR_EMAIL_NOTIFY
+    data:
+      title: "{{ '🖨️ Print ready to remove' if cooled else '🖨️ Print finished (bed still warm)' }} - {{ job }}"
+      message: "{{ msg }} In perspective: {{ fun }}"
+      attachments:
+        - media_source:
+            media_content_id: media-source://camera/YOUR_CAMERA_ENTITY_ID
+            media_content_type: image/jpeg
+          filename: snapmaker_u1_done.jpg
+          content_id: snapmaker_u1_done
+      html: >-
+        <div style="font-family:Arial,Helvetica,sans-serif;max-width:640px;margin:auto"><h2 style="margin:0 0 4px">🖨️ {{ name }}</h2><div style="font-size:20px;font-weight:bold;color:{{ '#16a34a' if cooled else '#d97706' }};margin-bottom:10px">{{ 'Print finished - safe to remove' if cooled else 'Print finished - bed still warm' }}</div><img src="cid:snapmaker_u1_done" alt="Finished print" style="width:100%;border-radius:12px"><table style="width:100%;border-collapse:collapse;margin-top:12px;font-size:15px"><tr><td style="padding:7px 10px;border-bottom:1px solid #e5e7eb;color:#6b7280">Print status</td><td style="padding:7px 10px;border-bottom:1px solid #e5e7eb;text-align:right;font-weight:bold">{{ 'Ready to remove' if cooled else 'Done - bed still warm' }}</td></tr><tr><td style="padding:7px 10px;border-bottom:1px solid #e5e7eb;color:#6b7280">Layers</td><td style="padding:7px 10px;border-bottom:1px solid #e5e7eb;text-align:right;font-weight:bold">{{ layers }}</td></tr><tr><td style="padding:7px 10px;border-bottom:1px solid #e5e7eb;color:#6b7280">Filament used</td><td style="padding:7px 10px;border-bottom:1px solid #e5e7eb;text-align:right;font-weight:bold">{{ filament_r }} m</td></tr><tr><td style="padding:7px 10px;border-bottom:1px solid #e5e7eb;color:#6b7280">That&#39;s about</td><td style="padding:7px 10px;border-bottom:1px solid #e5e7eb;text-align:right;font-weight:bold">{{ fun }}</td></tr><tr><td style="padding:7px 10px;border-bottom:1px solid #e5e7eb;color:#6b7280">Heated bed</td><td style="padding:7px 10px;border-bottom:1px solid #e5e7eb;text-align:right;font-weight:bold">{{ bed_f }}°F ({{ bed_c }}°C)</td></tr><tr><td style="padding:7px 10px;border-bottom:1px solid #e5e7eb;color:#6b7280">Enclosure</td><td style="padding:7px 10px;border-bottom:1px solid #e5e7eb;text-align:right;font-weight:bold">{{ cavity }}°F</td></tr><tr><td style="padding:7px 10px;border-bottom:1px solid #e5e7eb;color:#6b7280">Tools 1 / 2 / 3 / 4</td><td style="padding:7px 10px;border-bottom:1px solid #e5e7eb;text-align:right;font-weight:bold">{{ t1 }} / {{ t2 }} / {{ t3 }} / {{ t4 }} °F</td></tr><tr><td style="padding:7px 10px;border-bottom:1px solid #e5e7eb;color:#6b7280">Lifetime</td><td style="padding:7px 10px;border-bottom:1px solid #e5e7eb;text-align:right;font-weight:bold">{{ jobs }} jobs · {{ tot_fil }} m filament</td></tr></table><p style="color:#9ca3af;font-size:12px">Sent by Home Assistant at {{ now().strftime('%-I:%M %p on %A, %B %-d') }}</p></div>
+  # END:EMAIL
+
+  # BEGIN:PHONE
+  # Phone push (title + text only, see note at the top).
+  # For a photo + tap action use the older service instead, e.g.:
+  #   - action: notify.mobile_app_<your_phone>
+  #     data:
+  #       title: "Print finished"
+  #       message: "{{ msg }}"
+  #       data:
+  #         image: /local/snapmaker_u1_done.jpg
+  #         url: /lovelace/0
+  - action: notify.send_message
+    continue_on_error: true
+    target:
+      entity_id: YOUR_PHONE_NOTIFY
+    data:
+      title: "{{ '🖨️ Print ready to remove' if cooled else '🖨️ Print finished (bed still warm)' }}"
+      message: "{{ msg }}"
+  # END:PHONE
+
+  # Persistent notification inside Home Assistant
+  - action: persistent_notification.create
+    data:
+      notification_id: snapmaker_u1_print_done
+      title: "Snapmaker U1 - Print finished"
+      message: |
+        **{{ job }}** is done.
+
+        {{ layers }} layers · {{ filament }} m filament
+
+        ![Finished print](/local/snapmaker_u1_done.jpg?t={{ now().timestamp() | int }})
+
+  # BEGIN:SPEAKER
+  # Spoken announcement, only during reasonable hours
+  - if:
+      - condition: time
+        after: "08:00:00"
+        before: "21:30:00"
+    then:
+      - action: notify.send_message
+        target:
+          entity_id: YOUR_SPEAKER_NOTIFY
+        data:
+          message: >-
+            {% if cooled %}Your 3D print is finished. {{ name }} has cooled to {{ bed_f }} degrees and is ready to remove. It used {{ filament_r }} meters of filament across {{ layers }} layers.{% else %}Your 3D print is finished. {{ name }} is done, but the bed is still warm at {{ bed_f }} degrees, so give it a little longer before removing it.{% endif %}
+  # END:SPEAKER
+
