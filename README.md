@@ -9,7 +9,7 @@ in each toolhead, bed-cooling progress, a print-stage banner, and email/phone/sp
 |---|---|
 | ![Desktop dashboard](docs/images/dashboard-desktop.png) | ![Phone dashboard](docs/images/dashboard-phone.png) |
 
-*(Screenshots show an earlier build; the background color is a one-line setting and several cards have been refined since. See [docs/background_options.html](docs/background_options.html) for 8 background choices.)*
+*(Screenshots are for illustration; the desktop image's filament boxes are composited from the phone capture. Your dashboard may differ slightly, and the background color is a one-line setting. See [docs/background_options.html](docs/background_options.html) for 8 background choices.)*
 
 ## What you get
 

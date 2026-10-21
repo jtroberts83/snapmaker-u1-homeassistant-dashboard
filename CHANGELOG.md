@@ -2,6 +2,9 @@
 
 Every change to this repo is committed with a version bump (semantic versioning: MAJOR.MINOR.PATCH). The current version is in [`VERSION`](VERSION).
 
+## 1.0.2
+- Docs: desktop screenshot now shows filament type and vendor (PETG, Generic) and colors in each toolhead box; README screenshot note updated.
+
 ## 1.0.1
 - Dashboards: the status card beside the thumbnail no longer repeats the banner message. It now shows the job name and "Current job" (or "No active job" / "Snapmaker U1 is idle").
 
