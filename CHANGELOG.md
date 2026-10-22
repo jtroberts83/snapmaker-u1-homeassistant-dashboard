@@ -2,6 +2,9 @@
 
 Every change to this repo is committed with a version bump (semantic versioning: MAJOR.MINOR.PATCH). The current version is in [`VERSION`](VERSION).
 
+## 1.2.3
+- Dashboards: the countdown and estimated-completion time now use `sensor.YOURPRINTER_slicer_print_time_left_estimate`, which is more accurate than `print_time_left`. The time conversion now also copes with a sensor that has no unit. The progress-email automation still uses `print_time_left`. Entity lists updated.
+
 ## 1.2.2
 - Dashboards: a toolhead that is Holding above 350 °F now gets the same red styling as Heating (red column background and red tool card). The label still says Holding.
 

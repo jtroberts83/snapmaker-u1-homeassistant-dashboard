@@ -87,4 +87,4 @@ All use your prefix (shown here as `YOURPRINTER`, for example `basement_ui_3d_pr
 
 **Camera:** `camera.YOURPRINTER_thumbnail` (plus your live camera)
 
-**Sensors:** `sensor.YOURPRINTER_` followed by: `bed_temperature`, `cavity_temp`, `current_layer`, `current_print_state`, `extruder_power`, `extruder1_power`, `extruder2_power`, `extruder3_power`, `extruder_temperature`, `extruder1_temperature`, `extruder2_temperature`, `extruder3_temperature`, `filament_used`, `filename`, `memory_used`, `print_time_left`, `progress`, `total_layer`, `totals_filament_used`, `totals_jobs`, `totals_print_time`
+**Sensors:** `sensor.YOURPRINTER_` followed by: `bed_temperature`, `cavity_temp`, `current_layer`, `current_print_state`, `extruder_power`, `extruder1_power`, `extruder2_power`, `extruder3_power`, `extruder_temperature`, `extruder1_temperature`, `extruder2_temperature`, `extruder3_temperature`, `filament_used`, `filename`, `memory_used`, `print_time_left`, `slicer_print_time_left_estimate`, `progress`, `total_layer`, `totals_filament_used`, `totals_jobs`, `totals_print_time`

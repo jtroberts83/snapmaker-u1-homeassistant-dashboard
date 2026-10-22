@@ -54,11 +54,11 @@ Confirm with entity searches, not assumptions:
 2. Moonraker integration installed and the printer connected: search for entities containing `3d_printer`, `snapmaker` or `print_state`. This gives the **entity prefix** (everything between `sensor.` and `_current_print_state`).
 3. Mushroom and card-mod installed from HACS (INSTALL.md 2b). If you can read the Lovelace resources, check them; otherwise ask.
 
-Check that these 21 sensors, 3 buttons and the thumbnail camera exist for their prefix (the full list is in
+Check that these 22 sensors, 3 buttons and the thumbnail camera exist for their prefix (the full list is in
 TROUBLESHOOTING.md, "Entities the dashboards expect"): `bed_temperature`, `cavity_temp`, `current_layer`,
 `current_print_state`, `extruder_power`, `extruder1_power`..`extruder3_power`, `extruder_temperature`,
 `extruder1_temperature`..`extruder3_temperature`, `filament_used`, `filename`, `memory_used`,
-`print_time_left`, `progress`, `total_layer`, `totals_filament_used`, `totals_jobs`, `totals_print_time`;
+`print_time_left`, `slicer_print_time_left_estimate`, `progress`, `total_layer`, `totals_filament_used`, `totals_jobs`, `totals_print_time`;
 buttons `emergency_stop`, `pause_print`, `resume_print`; camera `<prefix>_thumbnail`. Report any that are missing.
 
 ## Step 3: collect the values (ask, don't guess)
