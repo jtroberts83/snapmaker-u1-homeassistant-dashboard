@@ -2,6 +2,9 @@
 
 Every change to this repo is committed with a version bump (semantic versioning: MAJOR.MINOR.PATCH). The current version is in [`VERSION`](VERSION).
 
+## 1.3.1
+- Fix: "TOOLHEAD n - ACTIVE" now only appears for a toolhead holding above 350 °F (actually in use). A tool parked at a standby temperature such as 158 °F no longer shows ACTIVE.
+
 ## 1.3.0
 - Dashboards: a toolhead that is heated up and holding steady shows its "TOOLHEAD n" label in red with " - ACTIVE" added. It reverts to the normal label when the toolhead is heating, cooling or sleeping.
 

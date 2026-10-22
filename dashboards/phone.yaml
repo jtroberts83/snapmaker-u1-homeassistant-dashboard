@@ -447,11 +447,11 @@ views:
                     }
                 cards:
                   - type: markdown
-                    content: "{% set r = states('sensor.snapmaker_u1_tool_1_temp_rate') | float(0) %}{% set v = states('sensor.snapmaker_u1_extruder_1_temp_f') | float(0) %}{% set pw = states('sensor.YOURPRINTER_extruder_power') | float(0) %}{% set act = not (r > 2 and pw >= 10) and not (r < -2 and v >= 120) and v >= 150 %}TOOLHEAD 1{% if act %} - ACTIVE{% endif %}"
+                    content: "{% set r = states('sensor.snapmaker_u1_tool_1_temp_rate') | float(0) %}{% set v = states('sensor.snapmaker_u1_extruder_1_temp_f') | float(0) %}{% set pw = states('sensor.YOURPRINTER_extruder_power') | float(0) %}{% set act = not (r > 2 and pw >= 10) and not (r < -2 and v >= 120) and v > 350 %}TOOLHEAD 1{% if act %} - ACTIVE{% endif %}"
                     card_mod:
                       style:
                         .: |
-                          {% set r = states('sensor.snapmaker_u1_tool_1_temp_rate') | float(0) %}{% set v = states('sensor.snapmaker_u1_extruder_1_temp_f') | float(0) %}{% set pw = states('sensor.YOURPRINTER_extruder_power') | float(0) %}{% set act = not (r > 2 and pw >= 10) and not (r < -2 and v >= 120) and v >= 150 %}
+                          {% set r = states('sensor.snapmaker_u1_tool_1_temp_rate') | float(0) %}{% set v = states('sensor.snapmaker_u1_extruder_1_temp_f') | float(0) %}{% set pw = states('sensor.YOURPRINTER_extruder_power') | float(0) %}{% set act = not (r > 2 and pw >= 10) and not (r < -2 and v >= 120) and v > 350 %}
                           ha-card {
                             background: #38bdf826;
                             border: none;
@@ -582,11 +582,11 @@ views:
                     }
                 cards:
                   - type: markdown
-                    content: "{% set r = states('sensor.snapmaker_u1_tool_2_temp_rate') | float(0) %}{% set v = states('sensor.snapmaker_u1_extruder_2_temp_f') | float(0) %}{% set pw = states('sensor.YOURPRINTER_extruder1_power') | float(0) %}{% set act = not (r > 2 and pw >= 10) and not (r < -2 and v >= 120) and v >= 150 %}TOOLHEAD 2{% if act %} - ACTIVE{% endif %}"
+                    content: "{% set r = states('sensor.snapmaker_u1_tool_2_temp_rate') | float(0) %}{% set v = states('sensor.snapmaker_u1_extruder_2_temp_f') | float(0) %}{% set pw = states('sensor.YOURPRINTER_extruder1_power') | float(0) %}{% set act = not (r > 2 and pw >= 10) and not (r < -2 and v >= 120) and v > 350 %}TOOLHEAD 2{% if act %} - ACTIVE{% endif %}"
                     card_mod:
                       style:
                         .: |
-                          {% set r = states('sensor.snapmaker_u1_tool_2_temp_rate') | float(0) %}{% set v = states('sensor.snapmaker_u1_extruder_2_temp_f') | float(0) %}{% set pw = states('sensor.YOURPRINTER_extruder1_power') | float(0) %}{% set act = not (r > 2 and pw >= 10) and not (r < -2 and v >= 120) and v >= 150 %}
+                          {% set r = states('sensor.snapmaker_u1_tool_2_temp_rate') | float(0) %}{% set v = states('sensor.snapmaker_u1_extruder_2_temp_f') | float(0) %}{% set pw = states('sensor.YOURPRINTER_extruder1_power') | float(0) %}{% set act = not (r > 2 and pw >= 10) and not (r < -2 and v >= 120) and v > 350 %}
                           ha-card {
                             background: #38bdf826;
                             border: none;
@@ -717,11 +717,11 @@ views:
                     }
                 cards:
                   - type: markdown
-                    content: "{% set r = states('sensor.snapmaker_u1_tool_3_temp_rate') | float(0) %}{% set v = states('sensor.snapmaker_u1_extruder_3_temp_f') | float(0) %}{% set pw = states('sensor.YOURPRINTER_extruder2_power') | float(0) %}{% set act = not (r > 2 and pw >= 10) and not (r < -2 and v >= 120) and v >= 150 %}TOOLHEAD 3{% if act %} - ACTIVE{% endif %}"
+                    content: "{% set r = states('sensor.snapmaker_u1_tool_3_temp_rate') | float(0) %}{% set v = states('sensor.snapmaker_u1_extruder_3_temp_f') | float(0) %}{% set pw = states('sensor.YOURPRINTER_extruder2_power') | float(0) %}{% set act = not (r > 2 and pw >= 10) and not (r < -2 and v >= 120) and v > 350 %}TOOLHEAD 3{% if act %} - ACTIVE{% endif %}"
                     card_mod:
                       style:
                         .: |
-                          {% set r = states('sensor.snapmaker_u1_tool_3_temp_rate') | float(0) %}{% set v = states('sensor.snapmaker_u1_extruder_3_temp_f') | float(0) %}{% set pw = states('sensor.YOURPRINTER_extruder2_power') | float(0) %}{% set act = not (r > 2 and pw >= 10) and not (r < -2 and v >= 120) and v >= 150 %}
+                          {% set r = states('sensor.snapmaker_u1_tool_3_temp_rate') | float(0) %}{% set v = states('sensor.snapmaker_u1_extruder_3_temp_f') | float(0) %}{% set pw = states('sensor.YOURPRINTER_extruder2_power') | float(0) %}{% set act = not (r > 2 and pw >= 10) and not (r < -2 and v >= 120) and v > 350 %}
                           ha-card {
                             background: #38bdf826;
                             border: none;
@@ -852,11 +852,11 @@ views:
                     }
                 cards:
                   - type: markdown
-                    content: "{% set r = states('sensor.snapmaker_u1_tool_4_temp_rate') | float(0) %}{% set v = states('sensor.snapmaker_u1_extruder_4_temp_f') | float(0) %}{% set pw = states('sensor.YOURPRINTER_extruder3_power') | float(0) %}{% set act = not (r > 2 and pw >= 10) and not (r < -2 and v >= 120) and v >= 150 %}TOOLHEAD 4{% if act %} - ACTIVE{% endif %}"
+                    content: "{% set r = states('sensor.snapmaker_u1_tool_4_temp_rate') | float(0) %}{% set v = states('sensor.snapmaker_u1_extruder_4_temp_f') | float(0) %}{% set pw = states('sensor.YOURPRINTER_extruder3_power') | float(0) %}{% set act = not (r > 2 and pw >= 10) and not (r < -2 and v >= 120) and v > 350 %}TOOLHEAD 4{% if act %} - ACTIVE{% endif %}"
                     card_mod:
                       style:
                         .: |
-                          {% set r = states('sensor.snapmaker_u1_tool_4_temp_rate') | float(0) %}{% set v = states('sensor.snapmaker_u1_extruder_4_temp_f') | float(0) %}{% set pw = states('sensor.YOURPRINTER_extruder3_power') | float(0) %}{% set act = not (r > 2 and pw >= 10) and not (r < -2 and v >= 120) and v >= 150 %}
+                          {% set r = states('sensor.snapmaker_u1_tool_4_temp_rate') | float(0) %}{% set v = states('sensor.snapmaker_u1_extruder_4_temp_f') | float(0) %}{% set pw = states('sensor.YOURPRINTER_extruder3_power') | float(0) %}{% set act = not (r > 2 and pw >= 10) and not (r < -2 and v >= 120) and v > 350 %}
                           ha-card {
                             background: #38bdf826;
                             border: none;
