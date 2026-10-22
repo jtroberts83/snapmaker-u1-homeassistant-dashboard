@@ -2,6 +2,9 @@
 
 Every change to this repo is committed with a version bump (semantic versioning: MAJOR.MINOR.PATCH). The current version is in [`VERSION`](VERSION).
 
+## 1.3.0
+- Dashboards: a toolhead that is heated up and holding steady shows its "TOOLHEAD n" label in red with " - ACTIVE" added. It reverts to the normal label when the toolhead is heating, cooling or sleeping.
+
 ## 1.2.3
 - Dashboards: the countdown and estimated-completion time now use `sensor.YOURPRINTER_slicer_print_time_left_estimate`, which is more accurate than `print_time_left`. The time conversion now also copes with a sensor that has no unit. The progress-email automation still uses `print_time_left`. Entity lists updated.
 
