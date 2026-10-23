@@ -2,6 +2,10 @@
 
 Every change to this repo is committed with a version bump (semantic versioning: MAJOR.MINOR.PATCH). The current version is in [`VERSION`](VERSION).
 
+## 1.5.0
+- New: elapsed print time under the countdown ("ELAPSED hh:mm" while printing, "PRINT TOOK hh:mm" during cooling and ready). Uses new `started_at` / `ended_at` attributes on `sensor.snapmaker_u1_print_stage`, so **update the print-stage sensor in packages/snapmaker_u1.yaml** and reload template entities (or restart). Elapsed is wall-clock time since the print started, pauses included.
+- Phone dashboard now shows the print thumbnail next to the filename and countdown, like the desktop layout.
+
 ## 1.4.0
 - New (optional): `www/snapmaker-keep-awake.js` keeps the computer screen awake while the printer dashboard is showing, using the browser Screen Wake Lock API. Setup and limits are in INSTALL.md (section 11).
 

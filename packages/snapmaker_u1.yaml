@@ -125,6 +125,16 @@ template:
             {% set s = states('sensor.YOURPRINTER_current_print_state') %}
             {% set bed = states('sensor.snapmaker_u1_bed_temp_f') | float(999) %}
             {% if s == 'complete' and bed <= 104 %}{{ this.attributes.get('ready_since') or now().isoformat() }}{% else %}{{ none }}{% endif %}
+          started_at: >
+            {% set s = states('sensor.YOURPRINTER_current_print_state') %}
+            {% set old = this.attributes.get('started_at') %}
+            {% set oend = this.attributes.get('ended_at') %}
+            {% if s in ['printing', 'paused'] %}{{ old if (old and not oend) else now().isoformat() }}
+            {% elif s == 'complete' %}{{ old if old else none }}
+            {% else %}{{ none }}{% endif %}
+          ended_at: >
+            {% set s = states('sensor.YOURPRINTER_current_print_state') %}
+            {% if s == 'complete' %}{{ this.attributes.get('ended_at') or now().isoformat() }}{% else %}{{ none }}{% endif %}
 
   - triggers:
       - trigger: state

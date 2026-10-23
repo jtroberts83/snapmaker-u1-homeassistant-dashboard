@@ -1,6 +1,6 @@
 # Snapmaker U1 3D Printer dashboard  -  PHONE (v3, clean layout)
 #
-# Single column: completion banner, filename + countdown, camera, progress, controls,
+# Single column: completion banner, thumbnail + filename + countdown, camera, progress, controls,
 # tool cards (red = heating, blue = cooling, green = sleeping, amber/red = holding),
 # bed / enclosure / layers / memory, then the fun filament fact and lifetime stats.
 #
@@ -147,106 +147,201 @@ views:
                 @media (prefers-reduced-motion: reduce) {
                   ha-card { animation: none; }
                 }
-          - type: custom:mushroom-template-card
-            entity: sensor.YOURPRINTER_current_print_state
-            layout: horizontal
-            fill_container: true
-            multiline_secondary: true
-            primary: >
-              {% set s = states('sensor.YOURPRINTER_current_print_state') %}
-              {% set ly = states('sensor.YOURPRINTER_current_layer') | float(0) %}
-              {% set bed = states('sensor.snapmaker_u1_bed_temp_f') | float(0) %}
-              {% set pk = states('sensor.snapmaker_u1_bed_peak_temp_f') | float(bed) %}
-              {% set pc = ([0, ([100, ((pk - bed) / (pk - 104) * 100) if pk - bed >= 0 and pk - 104 > 5 else 100] | min)] | max) | round(0) | int %}
-              {% if s == 'printing' %}{% set stage = 'preparing' if ly <= 0 else 'printing' %}
-              {% elif s == 'complete' %}{% set stage = 'cooling' if bed > 104 else 'ready' %}
-              {% elif s in ['paused', 'error', 'cancelled'] %}{% set stage = s %}
-              {% else %}{% set stage = 'idle' %}{% endif %}
-              {% set sx = states('sensor.snapmaker_u1_print_stage') %}
-              {% if sx not in ['unknown', 'unavailable', 'none', ''] %}{% set stage = sx %}{% endif %}
-              {% set fn = states('sensor.YOURPRINTER_filename') | replace('.gcode','') | replace('_',' ') %}
-              {% if stage in ['preparing','printing','paused','cooling','ready','error','cancelled'] and fn not in ['unknown','unavailable','none',''] %}{{ fn }}
-              {% else %}No active job{% endif %}
-            secondary: >
-              {% set s = states('sensor.YOURPRINTER_current_print_state') %}
-              {% set ly = states('sensor.YOURPRINTER_current_layer') | float(0) %}
-              {% set bed = states('sensor.snapmaker_u1_bed_temp_f') | float(0) %}
-              {% set pk = states('sensor.snapmaker_u1_bed_peak_temp_f') | float(bed) %}
-              {% set pc = ([0, ([100, ((pk - bed) / (pk - 104) * 100) if pk - bed >= 0 and pk - 104 > 5 else 100] | min)] | max) | round(0) | int %}
-              {% if s == 'printing' %}{% set stage = 'preparing' if ly <= 0 else 'printing' %}
-              {% elif s == 'complete' %}{% set stage = 'cooling' if bed > 104 else 'ready' %}
-              {% elif s in ['paused', 'error', 'cancelled'] %}{% set stage = s %}
-              {% else %}{% set stage = 'idle' %}{% endif %}
-              {% set sx = states('sensor.snapmaker_u1_print_stage') %}
-              {% if sx not in ['unknown', 'unavailable', 'none', ''] %}{% set stage = sx %}{% endif %}
-              {% if stage in ['preparing','printing','paused','cooling','ready','error','cancelled'] %}Current job{% else %}Snapmaker U1 is idle{% endif %}
-            icon: >
-              {% set s = states('sensor.YOURPRINTER_current_print_state') %}
-              {% set ly = states('sensor.YOURPRINTER_current_layer') | float(0) %}
-              {% set bed = states('sensor.snapmaker_u1_bed_temp_f') | float(0) %}
-              {% set pk = states('sensor.snapmaker_u1_bed_peak_temp_f') | float(bed) %}
-              {% set pc = ([0, ([100, ((pk - bed) / (pk - 104) * 100) if pk - bed >= 0 and pk - 104 > 5 else 100] | min)] | max) | round(0) | int %}
-              {% if s == 'printing' %}{% set stage = 'preparing' if ly <= 0 else 'printing' %}
-              {% elif s == 'complete' %}{% set stage = 'cooling' if bed > 104 else 'ready' %}
-              {% elif s in ['paused', 'error', 'cancelled'] %}{% set stage = s %}
-              {% else %}{% set stage = 'idle' %}{% endif %}
-              {% set sx = states('sensor.snapmaker_u1_print_stage') %}
-              {% if sx not in ['unknown', 'unavailable', 'none', ''] %}{% set stage = sx %}{% endif %}
-              {{ {'preparing':'mdi:printer-3d-nozzle-heat','printing':'mdi:printer-3d-nozzle','paused':'mdi:pause-circle','cooling':'mdi:snowflake','ready':'mdi:check-circle','waiting':'mdi:timer-sand','error':'mdi:alert-circle','cancelled':'mdi:cancel','idle':'mdi:printer-3d'}[stage] }}
-            icon_color: >
-              {% set s = states('sensor.YOURPRINTER_current_print_state') %}
-              {% set ly = states('sensor.YOURPRINTER_current_layer') | float(0) %}
-              {% set bed = states('sensor.snapmaker_u1_bed_temp_f') | float(0) %}
-              {% set pk = states('sensor.snapmaker_u1_bed_peak_temp_f') | float(bed) %}
-              {% set pc = ([0, ([100, ((pk - bed) / (pk - 104) * 100) if pk - bed >= 0 and pk - 104 > 5 else 100] | min)] | max) | round(0) | int %}
-              {% if s == 'printing' %}{% set stage = 'preparing' if ly <= 0 else 'printing' %}
-              {% elif s == 'complete' %}{% set stage = 'cooling' if bed > 104 else 'ready' %}
-              {% elif s in ['paused', 'error', 'cancelled'] %}{% set stage = s %}
-              {% else %}{% set stage = 'idle' %}{% endif %}
-              {% set sx = states('sensor.snapmaker_u1_print_stage') %}
-              {% if sx not in ['unknown', 'unavailable', 'none', ''] %}{% set stage = sx %}{% endif %}
-              {{ {'preparing':'orange','printing':'blue','paused':'orange','cooling':'blue','ready':'green','waiting':'grey','error':'red','cancelled':'amber','idle':'grey'}[stage] }}
-            grid_options:
-              columns: full
-            tap_action:
-              action: more-info
+          - type: horizontal-stack
             card_mod:
               style: |
-                ha-card {
-                  zoom: 1.15;
-                  border-radius: 16px;
-                  border: 1px solid rgba(148,163,184,0.16);
-                }
-          - type: markdown
-            content: |
-              {% set e = 'sensor.YOURPRINTER_slicer_print_time_left_estimate' %}{% set v = states(e) %}
-              {%- if is_number(v) and states('sensor.snapmaker_u1_print_stage') not in ['cooling', 'ready', 'waiting', 'idle', 'error', 'cancelled'] %}
-              {% set u = state_attr(e, 'unit_of_measurement') | default(('h' if v | float(0) < 100 else 's'), true) %}
-              {% set mins = (v | float * (60 if u in ['h','hr','hrs','hour','hours'] else 1 if u in ['min','m','mins','minute','minutes'] else 1/60)) | round(0) | int %}
-              # {{ '%02d' % (mins // 60) }}:{{ '%02d' % (mins % 60) }}
-              {% else %}
-              # --:--
-              {% endif %}
+                #root { display: grid !important; grid-template-columns: minmax(0, 2fr) minmax(0, 3fr) !important; gap: 8px !important; align-items: start !important; }
+            cards:
+              - type: vertical-stack
+                card_mod:
+                  style: |
+                    #root { --stack-card-gap: 0px; gap: 0px; }
+                cards:
+                  - type: conditional
+                    conditions:
+                    - condition: state
+                      entity: sensor.snapmaker_u1_print_stage
+                      state: [preparing, printing, paused]
+                    card:
+                      type: picture-entity
+                      entity: camera.YOURPRINTER_thumbnail
+                      camera_view: auto
+                      aspect_ratio: 1x1
+                      show_name: false
+                      show_state: false
+                      tap_action:
+                        action: more-info
+                      card_mod:
+                        style: |
+                          ha-card { border-radius: 16px; overflow: hidden; border: 1px solid rgba(148,163,184,0.16); }
+                          hui-image { transform: scaleX(-1); }
+                  - type: conditional
+                    conditions:
+                    - condition: state
+                      entity: sensor.snapmaker_u1_print_stage
+                      state: [cooling, ready]
+                    card:
+                      type: markdown
+                      content: |
+                        <img src="/local/snapmaker_u1_thumb.jpg?v={{ as_timestamp(states.sensor.YOURPRINTER_filename.last_changed) | int(0) }}" alt="Last print preview">
+                      card_mod:
+                        style:
+                          .: |
+                            ha-card {
+                              aspect-ratio: 1 / 1;
+                              border-radius: 16px;
+                              overflow: hidden;
+                              border: 1px solid rgba(148,163,184,0.16);
+                              background: #1c1c1c;
+                              display: flex; align-items: center; justify-content: center;
+                            }
+                            ha-markdown { padding: 0 !important; width: 100%; height: 100%; }
+                          ha-markdown$: |
+                            p { margin: 0; height: 100%; }
+                            img { width: 100%; height: 100%; object-fit: contain; transform: scaleX(-1); display: block; }
+                  - type: conditional
+                    conditions:
+                    - condition: state
+                      entity: sensor.snapmaker_u1_print_stage
+                      state_not: [preparing, printing, paused, cooling, ready]
+                    card:
+                      type: markdown
+                      content: |
+                        <ha-icon icon="mdi:cube-scan"></ha-icon>
 
-              HOURS : MINUTES REMAINING
-            card_mod:
-              style:
-                .: |
-                  ha-card {
-                    background: linear-gradient(135deg, rgba(239,68,68,0.16), rgba(239,68,68,0.04));
-                    border: 1px solid rgba(239,68,68,0.45);
-                    border-radius: 16px;
-                    display: flex; align-items: center; justify-content: center;
-                    min-height: 0px;
-                  }
-                  ha-markdown { color: #ef4444 !important; text-align: center; padding: 6px 12px !important;
-                    font-size: 12px; font-weight: 700; letter-spacing: 3px; }
-                  ha-markdown h1 { font-size: 60px !important; font-weight: 900 !important; line-height: 1.05 !important;
-                    margin: 0 0 2px 0 !important; letter-spacing: 3px; color: #ef4444 !important; border: 0; }
-                ha-markdown$: |
-                  h1 { font-size: 60px !important; font-weight: 900 !important; line-height: 1.05 !important;
-                       margin: 0 0 2px 0 !important; letter-spacing: 3px; color: #ef4444 !important; border: 0; }
-                  p { margin: 0; }
+                        **No active job**
+
+                        Send a print to the U1 and its preview shows up here
+                      card_mod:
+                        style:
+                          .: |
+                            ha-card {
+                              aspect-ratio: 1 / 1;
+                              display: flex; align-items: center; justify-content: center; text-align: center;
+                              border-radius: 16px;
+                              border: 2px dashed rgba(148,163,184,0.45);
+                              background: radial-gradient(300px 200px at 50% 0%, rgba(99,102,241,0.18), transparent 70%), rgba(15,23,42,0.75);
+                            }
+                            ha-markdown { padding: 0 14px !important; color: #94a3b8 !important; font-size: 13px; }
+                            ha-markdown p { margin: 4px 0 !important; }
+                          ha-markdown$: |
+                            ha-icon { --mdc-icon-size: 64px; color: #64748b; display: block; margin: 0 auto; }
+                            p { margin: 4px 0; }
+              - type: vertical-stack
+                card_mod:
+                  style: |
+                    #root { --stack-card-gap: 8px; gap: 8px; }
+                cards:
+                  - type: custom:mushroom-template-card
+                    entity: sensor.YOURPRINTER_current_print_state
+                    layout: horizontal
+                    fill_container: true
+                    multiline_secondary: true
+                    primary: >
+                      {% set s = states('sensor.YOURPRINTER_current_print_state') %}
+                      {% set ly = states('sensor.YOURPRINTER_current_layer') | float(0) %}
+                      {% set bed = states('sensor.snapmaker_u1_bed_temp_f') | float(0) %}
+                      {% set pk = states('sensor.snapmaker_u1_bed_peak_temp_f') | float(bed) %}
+                      {% set pc = ([0, ([100, ((pk - bed) / (pk - 104) * 100) if pk - bed >= 0 and pk - 104 > 5 else 100] | min)] | max) | round(0) | int %}
+                      {% if s == 'printing' %}{% set stage = 'preparing' if ly <= 0 else 'printing' %}
+                      {% elif s == 'complete' %}{% set stage = 'cooling' if bed > 104 else 'ready' %}
+                      {% elif s in ['paused', 'error', 'cancelled'] %}{% set stage = s %}
+                      {% else %}{% set stage = 'idle' %}{% endif %}
+                      {% set sx = states('sensor.snapmaker_u1_print_stage') %}
+                      {% if sx not in ['unknown', 'unavailable', 'none', ''] %}{% set stage = sx %}{% endif %}
+                      {% set fn = states('sensor.YOURPRINTER_filename') | replace('.gcode','') | replace('_',' ') %}
+                      {% if stage in ['preparing','printing','paused','cooling','ready','error','cancelled'] and fn not in ['unknown','unavailable','none',''] %}{{ fn }}
+                      {% else %}No active job{% endif %}
+                    secondary: >
+                      {% set s = states('sensor.YOURPRINTER_current_print_state') %}
+                      {% set ly = states('sensor.YOURPRINTER_current_layer') | float(0) %}
+                      {% set bed = states('sensor.snapmaker_u1_bed_temp_f') | float(0) %}
+                      {% set pk = states('sensor.snapmaker_u1_bed_peak_temp_f') | float(bed) %}
+                      {% set pc = ([0, ([100, ((pk - bed) / (pk - 104) * 100) if pk - bed >= 0 and pk - 104 > 5 else 100] | min)] | max) | round(0) | int %}
+                      {% if s == 'printing' %}{% set stage = 'preparing' if ly <= 0 else 'printing' %}
+                      {% elif s == 'complete' %}{% set stage = 'cooling' if bed > 104 else 'ready' %}
+                      {% elif s in ['paused', 'error', 'cancelled'] %}{% set stage = s %}
+                      {% else %}{% set stage = 'idle' %}{% endif %}
+                      {% set sx = states('sensor.snapmaker_u1_print_stage') %}
+                      {% if sx not in ['unknown', 'unavailable', 'none', ''] %}{% set stage = sx %}{% endif %}
+                      {% if stage in ['preparing','printing','paused','cooling','ready','error','cancelled'] %}Current job{% else %}Snapmaker U1 is idle{% endif %}
+                    icon: >
+                      {% set s = states('sensor.YOURPRINTER_current_print_state') %}
+                      {% set ly = states('sensor.YOURPRINTER_current_layer') | float(0) %}
+                      {% set bed = states('sensor.snapmaker_u1_bed_temp_f') | float(0) %}
+                      {% set pk = states('sensor.snapmaker_u1_bed_peak_temp_f') | float(bed) %}
+                      {% set pc = ([0, ([100, ((pk - bed) / (pk - 104) * 100) if pk - bed >= 0 and pk - 104 > 5 else 100] | min)] | max) | round(0) | int %}
+                      {% if s == 'printing' %}{% set stage = 'preparing' if ly <= 0 else 'printing' %}
+                      {% elif s == 'complete' %}{% set stage = 'cooling' if bed > 104 else 'ready' %}
+                      {% elif s in ['paused', 'error', 'cancelled'] %}{% set stage = s %}
+                      {% else %}{% set stage = 'idle' %}{% endif %}
+                      {% set sx = states('sensor.snapmaker_u1_print_stage') %}
+                      {% if sx not in ['unknown', 'unavailable', 'none', ''] %}{% set stage = sx %}{% endif %}
+                      {{ {'preparing':'mdi:printer-3d-nozzle-heat','printing':'mdi:printer-3d-nozzle','paused':'mdi:pause-circle','cooling':'mdi:snowflake','ready':'mdi:check-circle','waiting':'mdi:timer-sand','error':'mdi:alert-circle','cancelled':'mdi:cancel','idle':'mdi:printer-3d'}[stage] }}
+                    icon_color: >
+                      {% set s = states('sensor.YOURPRINTER_current_print_state') %}
+                      {% set ly = states('sensor.YOURPRINTER_current_layer') | float(0) %}
+                      {% set bed = states('sensor.snapmaker_u1_bed_temp_f') | float(0) %}
+                      {% set pk = states('sensor.snapmaker_u1_bed_peak_temp_f') | float(bed) %}
+                      {% set pc = ([0, ([100, ((pk - bed) / (pk - 104) * 100) if pk - bed >= 0 and pk - 104 > 5 else 100] | min)] | max) | round(0) | int %}
+                      {% if s == 'printing' %}{% set stage = 'preparing' if ly <= 0 else 'printing' %}
+                      {% elif s == 'complete' %}{% set stage = 'cooling' if bed > 104 else 'ready' %}
+                      {% elif s in ['paused', 'error', 'cancelled'] %}{% set stage = s %}
+                      {% else %}{% set stage = 'idle' %}{% endif %}
+                      {% set sx = states('sensor.snapmaker_u1_print_stage') %}
+                      {% if sx not in ['unknown', 'unavailable', 'none', ''] %}{% set stage = sx %}{% endif %}
+                      {{ {'preparing':'orange','printing':'blue','paused':'orange','cooling':'blue','ready':'green','waiting':'grey','error':'red','cancelled':'amber','idle':'grey'}[stage] }}
+                    tap_action:
+                      action: more-info
+                    card_mod:
+                      style: |
+                        ha-card {
+                          zoom: 1.15;
+                          border-radius: 16px;
+                          border: 1px solid rgba(148,163,184,0.16);
+                        }
+                  - type: markdown
+                    content: |
+                      {% set e = 'sensor.YOURPRINTER_slicer_print_time_left_estimate' %}{% set v = states(e) %}
+                      {%- if is_number(v) and states('sensor.snapmaker_u1_print_stage') not in ['cooling', 'ready', 'waiting', 'idle', 'error', 'cancelled'] %}
+                      {% set u = state_attr(e, 'unit_of_measurement') | default(('h' if v | float(0) < 100 else 's'), true) %}
+                      {% set mins = (v | float * (60 if u in ['h','hr','hrs','hour','hours'] else 1 if u in ['min','m','mins','minute','minutes'] else 1/60)) | round(0) | int %}
+                      # {{ '%02d' % (mins // 60) }}:{{ '%02d' % (mins % 60) }}
+                      {% else %}
+                      # --:--
+                      {% endif %}
+
+                      HOURS : MINUTES REMAINING
+                      {% set sa = state_attr('sensor.snapmaker_u1_print_stage', 'started_at') %}
+                      {% set ea = state_attr('sensor.snapmaker_u1_print_stage', 'ended_at') %}
+                      {% set stg = states('sensor.snapmaker_u1_print_stage') %}
+                      {% if sa and stg in ['preparing', 'printing', 'paused', 'cooling', 'ready'] %}
+                      {% set t0 = as_datetime(sa) %}
+                      {% set t1 = as_datetime(ea) if ea else now() %}
+                      {% set sec = ((t1 - t0).total_seconds() | int) if t0 else 0 %}
+                      {% set sec = sec if sec > 0 else 0 %}
+
+                      {{ 'ELAPSED' if stg in ['preparing', 'printing', 'paused'] else 'PRINT TOOK' }} {{ '%02d' % (sec // 3600) }}:{{ '%02d' % ((sec % 3600) // 60) }}
+                      {% endif %}
+                    card_mod:
+                      style:
+                        .: |
+                          ha-card {
+                            background: linear-gradient(135deg, rgba(239,68,68,0.16), rgba(239,68,68,0.04));
+                            border: 1px solid rgba(239,68,68,0.45);
+                            border-radius: 16px;
+                            display: flex; align-items: center; justify-content: center;
+                            min-height: 0px;
+                          }
+                          ha-markdown { color: #ef4444 !important; text-align: center; padding: 6px 12px !important;
+                            font-size: 12px; font-weight: 700; letter-spacing: 3px; }
+                          ha-markdown h1 { font-size: 50px !important; font-weight: 900 !important; line-height: 1.05 !important;
+                            margin: 0 0 2px 0 !important; letter-spacing: 3px; color: #ef4444 !important; border: 0; }
+                        ha-markdown$: |
+                          h1 { font-size: 50px !important; font-weight: 900 !important; line-height: 1.05 !important;
+                               margin: 0 0 2px 0 !important; letter-spacing: 3px; color: #ef4444 !important; border: 0; }
+                          p { margin: 0; }
+                          p + p { margin-top: 10px; color: #fca5a5 !important; font-size: 11px !important; letter-spacing: 2px !important; font-weight: 600 !important; }
           - type: vertical-stack
             card_mod:
               style: |

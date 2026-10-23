@@ -593,6 +593,17 @@ views:
                               {% endif %}
 
                               HOURS : MINUTES REMAINING
+                              {% set sa = state_attr('sensor.snapmaker_u1_print_stage', 'started_at') %}
+                              {% set ea = state_attr('sensor.snapmaker_u1_print_stage', 'ended_at') %}
+                              {% set stg = states('sensor.snapmaker_u1_print_stage') %}
+                              {% if sa and stg in ['preparing', 'printing', 'paused', 'cooling', 'ready'] %}
+                              {% set t0 = as_datetime(sa) %}
+                              {% set t1 = as_datetime(ea) if ea else now() %}
+                              {% set sec = ((t1 - t0).total_seconds() | int) if t0 else 0 %}
+                              {% set sec = sec if sec > 0 else 0 %}
+
+                              {{ 'ELAPSED' if stg in ['preparing', 'printing', 'paused'] else 'PRINT TOOK' }} {{ '%02d' % (sec // 3600) }}:{{ '%02d' % ((sec % 3600) // 60) }}
+                              {% endif %}
                             card_mod:
                               style:
                                 .: |
@@ -611,6 +622,7 @@ views:
                                   h1 { font-size: 96px !important; font-weight: 900 !important; line-height: 1.05 !important;
                                        margin: 0 0 2px 0 !important; letter-spacing: 3px; color: #ef4444 !important; border: 0; }
                                   p { margin: 0; }
+                                  p + p { margin-top: 10px; color: #fca5a5 !important; font-size: 15px !important; letter-spacing: 2px !important; font-weight: 600 !important; }
                   - type: grid
                     columns: 4
                     square: false
