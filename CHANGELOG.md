@@ -2,6 +2,9 @@
 
 Every change to this repo is committed with a version bump (semantic versioning: MAJOR.MINOR.PATCH). The current version is in [`VERSION`](VERSION).
 
+## 1.7.0
+- New: the G-code previews are drawn in the real filament colors of each toolhead (read from the printer's filament settings, falling back to the `filament_colour` line in the G-code), instead of the height gradient. Very dark filaments are lightened so they stay visible. Add `--generic-colors` to go back to the gradient. The cache format changed, so the first preview after updating re-reads the file.
+
 ## 1.6.1
 - New: `--progress-hide-supports` and `--model-hide-supports` options for the G-code previews hide support structures (needs `;TYPE:Support` comments in the G-code). Supports are still drawn by default. The parsed-file cache format changed, so the first preview after updating re-reads the file.
 

@@ -16,6 +16,7 @@ Options: --port 7125                     Moonraker port
          --model-yaw 145 --model-pitch 32        angle of the "model" picture (degrees)
          --progress-yaw -35 --progress-pitch 32  angle of the layer-by-layer picture
          --progress-hide-supports        leave support material out of the layer-by-layer picture
+         --generic-colors                use the height gradient instead of the real filament colors
          --model-hide-supports           leave support material out of the second-angle picture
          --out /config/www               where the pictures are written
          --cache /config/.snapmaker_preview      where parsed G-code is cached
@@ -77,6 +78,36 @@ def printer_state(base):
     }
 
 
+def parse_hex(v):
+    v = str(v or "").strip().lstrip("#")
+    if len(v) in (6, 8):
+        try:
+            return usable((int(v[0:2], 16), int(v[2:4], 16), int(v[4:6], 16)))
+        except ValueError:
+            return None
+    return None
+
+
+def filament_colors(base, parsed):
+    """{tool index: (r, g, b)} from the printer's filament settings, else from the G-code header."""
+    found = {}
+    try:
+        data = get_json(base + "/printer/objects/query?print_task_config")
+        cfg = data.get("result", {}).get("status", {}).get("print_task_config", {}) or {}
+        for i, v in enumerate(cfg.get("filament_color_rgba") or []):
+            c = parse_hex(v)
+            if c:
+                found[i] = c
+    except Exception:
+        pass
+    for i, v in enumerate(parsed.get("header_colors") or []):
+        if i not in found:
+            c = parse_hex(v)
+            if c:
+                found[i] = c
+    return found
+
+
 def file_key(base, filename):
     try:
         meta = get_json(base + "/server/files/metadata?filename=" + urllib.parse.quote(filename))
@@ -105,6 +136,8 @@ def parse_gcode(path):
     layers = []      # one flat array('f') per layer: x0 y0 x1 y1 ...
     supports = []    # the same, for support material (slicers mark it with ";TYPE:Support")
     is_support = False
+    tool = 0
+    hdr_colors = None
     layer_z = []
     layer_off = []   # byte offset in the file where each layer starts
     curz = None
@@ -119,11 +152,17 @@ def parse_gcode(path):
             if not raw or raw[0] in (59, 10, 13):      # ';' or empty line
                 if raw.startswith(b";TYPE:"):
                     is_support = b"support" in raw.lower()
+                elif raw[:1] == b";" and b"filament_colo" in raw[:40].lower() and b"=" in raw:
+                    hdr_colors = [c.strip().strip(b'"').decode("ascii", "ignore")
+                                  for c in raw.split(b"=", 1)[1].replace(b",", b";").split(b";")]
                 continue
             code = raw.split(b";", 1)[0].split()
             if not code:
                 continue
             cmd = code[0].upper()
+            if cmd[:1] == b"T" and cmd[1:].isdigit():
+                tool = int(cmd[1:])
+                continue
             if cmd in (b"G1", b"G0", b"G2", b"G3", b"G01", b"G00"):
                 nx, ny, nz, ne = x, y, z, None
                 for p in code[1:]:
@@ -154,7 +193,7 @@ def parse_gcode(path):
                         layer_z.append(nz)
                         layer_off.append(start)
                         curz = nz
-                    (supports if is_support else layers)[-1].extend((x, y, nx, ny))
+                    (supports if is_support else layers)[-1].extend((x, y, nx, ny, tool))
                     if x < minx: minx = x
                     if nx < minx: minx = nx
                     if y < miny: miny = y
@@ -182,7 +221,7 @@ def parse_gcode(path):
                             pass
     if not layers:
         raise ValueError("no extruding moves found in the G-code")
-    return {"version": 2, "layers": layers, "supports": supports, "layer_z": layer_z, "layer_off": layer_off,
+    return {"version": 3, "header_colors": hdr_colors, "layers": layers, "supports": supports, "layer_z": layer_z, "layer_off": layer_off,
             "bbox": (minx, miny, 0.0, maxx, maxy, maxz)}
 
 
@@ -293,7 +332,18 @@ def pick_layers(count, keep_last, max_segments, seg_total):
     return idx
 
 
-def render(parsed, yaw, pitch, printed=None, hide_supports=False):
+def tint(rgb, f):
+    return tuple(max(0, min(255, int(c * f))) for c in rgb)
+
+
+def usable(rgb):
+    """Lift very dark filaments (black) so they stay visible on the dark background."""
+    if max(rgb) < 90:
+        return tuple(int(c * 0.5 + 70) for c in rgb)
+    return rgb
+
+
+def render(parsed, yaw, pitch, printed=None, hide_supports=False, tool_colors=None):
     """printed = number of layers already printed (None = draw everything as finished)."""
     layers, lz, bbox = parsed["layers"], parsed["layer_z"], parsed["bbox"]
     supports = parsed.get("supports") or [array("f")] * len(layers)
@@ -308,7 +358,7 @@ def render(parsed, yaw, pitch, printed=None, hide_supports=False):
         b = proj(corners[(i + 1) % 4][0], corners[(i + 1) % 4][1], 0.0)
         canvas.line(a[0], a[1], b[0], b[1], FOOT)
     total = len(layers)
-    seg_total = sum(len(l) // 4 for l in layers) + (0 if hide_supports else sum(len(l) // 4 for l in supports))
+    seg_total = sum(len(l) // 5 for l in layers) + (0 if hide_supports else sum(len(l) // 5 for l in supports))
     last = None if printed is None else max(0, min(total, printed) - 1)
     draw = pick_layers(total, last, MAX_SEGS, seg_total)
     top = max(lz) or 1.0
@@ -316,15 +366,21 @@ def render(parsed, yaw, pitch, printed=None, hide_supports=False):
         if li not in draw:
             continue
         done = printed is None or li < printed
+        glow = printed is not None and done and li >= printed - 2
+        shade = 0.6 + 0.4 * (lz[li] / top)        # a little darker low down, for depth
         if done:
-            color = lerp_color(lz[li] / top)
-            if printed is not None and li >= printed - 2:
-                color = (250, 250, 250)           # the newest layers glow white
+            grad = (250, 250, 250) if glow else lerp_color(lz[li] / top)
         else:
-            color = GHOST
+            grad = GHOST
         z = lz[li]
         for arr in ((layers[li],) if hide_supports else (supports[li], layers[li])):
-            for k in range(0, len(arr), 4):
+            for k in range(0, len(arr), 5):
+                if tool_colors and done:
+                    base = tool_colors.get(int(arr[k + 4]), tool_colors.get(0))
+                    color = grad if base is None else (
+                        tuple((c + 255) // 2 for c in base) if glow else tint(base, shade))
+                else:
+                    color = grad
                 x0, y0 = proj(arr[k], arr[k + 1], z)
                 x1, y1 = proj(arr[k + 2], arr[k + 3], z)
                 canvas.line(x0, y0, x1, y1, color)
@@ -368,7 +424,7 @@ def work(args):
         try:
             with open(cache_file, "rb") as fh:
                 parsed = pickle.load(fh)
-            if parsed.get("version") != 2:
+            if parsed.get("version") != 3:
                 parsed = None
         except Exception:
             parsed = None
@@ -388,11 +444,13 @@ def work(args):
             os.remove(old)
         log(args, "parsed %d layers in %.1fs" % (len(parsed["layers"]), time.time() - t0))
     total = len(parsed["layers"])
+    colors = None if args.generic_colors else filament_colors(base, parsed)
+    ckey = "gen" if not colors else ",".join("%d=%02x%02x%02x" % ((i,) + c) for i, c in sorted(colors.items()))
     # the whole model from the second angle: once per file
     done_key = open(marker).read() if os.path.exists(marker) else ""
-    key = key + "|" + "%s,%s,%s" % (args.model_yaw, args.model_pitch, args.model_hide_supports)
+    key = key + "|" + "%s,%s,%s,%s" % (args.model_yaw, args.model_pitch, args.model_hide_supports, ckey)
     if done_key != key:
-        write_png(out_model, render(parsed, args.model_yaw, args.model_pitch, None, args.model_hide_supports))
+        write_png(out_model, render(parsed, args.model_yaw, args.model_pitch, None, args.model_hide_supports, colors))
         with open(marker, "w") as fh:
             fh.write(key)
         log(args, "model picture written")
@@ -405,7 +463,7 @@ def work(args):
         printed = min(total, int(st["current_layer"]))
     else:
         printed = 0
-    write_png(out_prog, render(parsed, args.progress_yaw, args.progress_pitch, printed, args.progress_hide_supports))
+    write_png(out_prog, render(parsed, args.progress_yaw, args.progress_pitch, printed, args.progress_hide_supports, colors))
     log(args, "progress picture written: %d of %d layers" % (printed, total))
     return 0
 
@@ -425,6 +483,7 @@ def main():
     ap.add_argument("--progress-pitch", type=float, default=32.0)
     ap.add_argument("--progress-hide-supports", action="store_true")
     ap.add_argument("--model-hide-supports", action="store_true")
+    ap.add_argument("--generic-colors", action="store_true", help="use the height gradient instead of the filament colors")
     ap.add_argument("--out", default=os.environ.get("SNAPMAKER_PREVIEW_OUT", "/config/www"))
     ap.add_argument("--cache", default=os.environ.get("SNAPMAKER_PREVIEW_CACHE", "/config/.snapmaker_preview"))
     ap.add_argument("--foreground", action="store_true")

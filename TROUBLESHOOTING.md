@@ -80,6 +80,7 @@ The two extra previews are drawn by `scripts/snapmaker_gcode_preview.py`, starte
 - **"no extruding moves found".** The G-code uses a style the script doesn't understand. Open an issue with the first few hundred lines of the file.
 - **Layers fill in too early or too late.** The progress is taken from how far through the file the printer is. If your printer does not report that, it uses the current layer number instead.
 - **Supports show (or don't hide) in the layer view.** Supports are drawn by default. Add `--progress-hide-supports` (and `--model-hide-supports` for the other picture) to the `snapmaker_gcode_preview` line and fully restart. It works only if the G-code has `;TYPE:Support` / `;TYPE:Support interface` comments; check with a text editor. Without them, nothing can be hidden.
+- **Previews are in the wrong colors, or the old gradient.** Colors come from `print_task_config` on the printer (test: `http://<PRINTER_IP>:7125/printer/objects/query?print_task_config`), else from the `filament_colour` line the slicer writes in the G-code. If neither exists, or `--generic-colors` is set, the height gradient is used. Black filament is lightened a little on purpose.
 - **Very large files look sparse.** Above about 350,000 line segments the script draws every second or third layer to stay quick.
 - **The picture doesn't swap every 5 seconds.** The swap is a CSS animation in the dashboard card; it needs card-mod from HACS. The slicer thumbnail side comes from the printer's own thumbnail.
 

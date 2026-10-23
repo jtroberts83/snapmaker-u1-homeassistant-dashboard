@@ -258,6 +258,8 @@ You have five automation files in `build/automations/`. Creating each one is the
 > **Choose the angles.** In `packages/snapmaker_u1.yaml`, add options to the `snapmaker_gcode_preview` line, for example `... PRINTER_IP --model-yaw 145 --model-pitch 32 --progress-yaw -35 --progress-pitch 32`. Yaw 0 looks from the front of the printer, 90 from the left, 180 from the back, -90 from the right. Pitch is how high you look down from (0 level, 90 straight down).
 >
 > **Hide supports.** Add `--progress-hide-supports` to leave support structures out of the layer-by-layer preview (and `--model-hide-supports` for the second-angle picture). This relies on the slicer writing `;TYPE:Support` comments in the G-code (Orca, Prusa and Cura do); if there are none, supports can't be told apart and everything is drawn. Needs a full restart after changing the line.
+>
+> **Colors.** Previews use each toolhead's filament color (from the printer, or the G-code header). Add `--generic-colors` for the old blue-to-orange height gradient.
 
 > **Test the print-finished flow without printing:** open the automation → **⋮ → Run actions**. (It will say the print is not complete and stop, which is normal; a real test happens at the end of your next print.)
 
