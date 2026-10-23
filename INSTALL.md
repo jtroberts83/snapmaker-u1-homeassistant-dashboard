@@ -355,6 +355,23 @@ You get two dashboards. Make one for each, or only the one you want.
 | Change the "Waiting for new print job" delay | In `packages/snapmaker_u1.yaml`, edit `>= 1800` (seconds) in the print stage sensor. |
 | Change how often the camera is kept awake | In `automations/camera_keepalive.yaml`, change `minutes: "/1"`. |
 | Change which stages email you | Edit the `triggers` in `automations/progress_emails.yaml` (the `above:` values are the percentages). |
+| Keep the computer screen awake while the dashboard is showing | See [Keep the screen awake](#keep-the-screen-awake-optional) below. |
+
+### Keep the screen awake (optional)
+
+If you leave the desktop dashboard on a monitor, you can stop the screen from dimming or sleeping while it is showing. `www/snapmaker-keep-awake.js` asks the browser for a *screen wake lock* while a Home Assistant tab on your printer dashboard is visible, and lets go when you switch tab or dashboard.
+
+1. Copy `www/snapmaker-keep-awake.js` to `/config/www/` on your Home Assistant (create the `www` folder if it isn't there).
+2. Open the file and, if needed, change `PATH_MATCH`. The screen stays awake only when the dashboard's web address contains one of those words. The default `"printer"` matches an address like `/dashboard-printer/overview`.
+3. Turn on **Advanced mode** (your profile, bottom left), then **Settings → Dashboards → ⋮ (top right) → Resources → Add resource**. URL: `/local/snapmaker-keep-awake.js`, type **JavaScript module**. Save.
+4. Hard-refresh the browser (Ctrl+Shift+R, or Cmd+Shift+R on a Mac).
+
+**Limits to know:**
+
+- Browsers only allow this when Home Assistant is opened over **HTTPS** (Nabu Casa or your own certificate) or at **localhost**. At a plain `http://192.168.x.x:8123` address it does nothing. (Open the browser console and look for `[snapmaker-keep-awake]` to see why.)
+- The dashboard tab must be the visible one, and the browser must stay open.
+- It keeps the display on; it does not wake a screen that has already gone to sleep.
+- It works per browser. For a wall tablet, the Fully Kiosk Browser app (keep-screen-on setting) is the more dependable option. On Windows, the PowerToys *Awake* tool also works without any browser support.
 
 ### Updating later
 

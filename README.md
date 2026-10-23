@@ -66,6 +66,7 @@ If you use Claude and have a Home Assistant MCP connection, you can let Claude w
 | `automations/` | Camera keep-alive, thumbnail saver, print-finished notifications, progress emails |
 | `dashboards/desktop.yaml`, `dashboards/phone.yaml` | The two dashboards |
 | `skill/snapmaker-u1-setup/` | Claude Skill that guides the install through your Home Assistant MCP connection |
+| `www/snapmaker-keep-awake.js` | Optional: keeps the computer screen awake while the dashboard is showing (INSTALL.md, section 11) |
 | `docs/lifetime_comparisons.md` | The 100 filament comparisons |
 | `docs/background_options.html` | Preview of 8 dashboard background options (open in a browser) |
 
