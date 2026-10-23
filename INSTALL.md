@@ -249,7 +249,7 @@ You have five automation files in `build/automations/`. Creating each one is the
 |---|---|---|
 | `camera_keepalive.yaml` | Keeps the camera awake (every minute) | step 6 |
 | `save_thumbnail.yaml` | Saves a copy of the print preview while printing so it stays visible after the print completes | step 5 |
-| `gcode_preview.yaml` | Draws the extra print previews from the G-code: the whole model from a second angle (it swaps with the slicer thumbnail every 5 seconds) and a layer-by-layer picture that updates every 5 minutes while printing | step 5 |
+| `gcode_preview.yaml` | Draws the extra print previews from the G-code: the whole model from a second angle and a layer-by-layer picture that updates every 5 minutes while printing; the dashboard rotates them with the slicer thumbnail in one large preview window | step 5 |
 | `print_finished.yaml` | When a print completes, waits for the bed to cool to 40 °C, then emails you the photo and stats, pushes to your phone, adds a Home Assistant notification and announces on a speaker (any part you left blank is already removed) | step 8 for email |
 | `progress_emails.yaml` | Emails a snapshot + stats at 1 %, 25 %, 50 % and 75 % | step 8 |
 

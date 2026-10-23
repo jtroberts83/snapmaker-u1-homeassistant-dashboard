@@ -2,6 +2,9 @@
 
 Every change to this repo is committed with a version bump (semantic versioning: MAJOR.MINOR.PATCH). The current version is in [`VERSION`](VERSION).
 
+## 1.8.0
+- Changed: the two small preview thumbnails are now ONE larger window on both dashboards that rotates every 6 seconds through the slicer thumbnail, the whole model from a second angle, and the layer-by-layer view, with a small caption on each. **Replace both dashboards** (desktop.yaml, phone.yaml); no change to the script or package.
+
 ## 1.7.0
 - New: the G-code previews are drawn in the real filament colors of each toolhead (read from the printer's filament settings, falling back to the `filament_colour` line in the G-code), instead of the height gradient. Very dark filaments are lightened so they stay visible. Add `--generic-colors` to go back to the gradient. The cache format changed, so the first preview after updating re-reads the file.
 

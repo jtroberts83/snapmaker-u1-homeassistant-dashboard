@@ -431,7 +431,7 @@ views:
                   - type: horizontal-stack
                     card_mod:
                       style: |
-                        #root { display: grid !important; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1.5fr) !important; gap: 12px !important; align-items: start !important; }
+                        #root { display: grid !important; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1.5fr) !important; gap: 12px !important; align-items: start !important; }
                     cards:
                       - type: vertical-stack
                         card_mod:
@@ -449,7 +449,9 @@ views:
                                 {% set st = states('sensor.snapmaker_u1_print_stage') %}
                                 {% set t = (as_timestamp(now()) // 60) | int %}
                                 {% if st in ['preparing', 'printing', 'paused'] %}{% set a = state_attr('camera.YOURPRINTER_thumbnail', 'entity_picture') | default('', true) %}{% else %}{% set a = '/local/snapmaker_u1_thumb.jpg?v=' ~ (as_timestamp(states.sensor.YOURPRINTER_filename.last_changed) | int(0)) %}{% endif %}
-                                <img src="{{ a }}"><img src="/local/snapmaker_u1_model_angle.png?v={{ t }}">
+                                {% set tl = states('sensor.YOURPRINTER_total_layer') | int(0) %}
+                                {% set cl = tl if st in ['cooling', 'ready'] else states('sensor.YOURPRINTER_current_layer') | int(0) %}
+                                <img src="{{ a }}"><img src="/local/snapmaker_u1_model_angle.png?v={{ t }}"><img src="/local/snapmaker_u1_progress.png?v={{ t }}"><span>Slicer preview</span><span>Whole model, other angle</span><span>Layer {{ cl }} / {{ tl }}</span>
                               card_mod:
                                 style:
                                   .: |
@@ -464,11 +466,18 @@ views:
                                     ha-markdown { padding: 0 !important; width: 100%; height: 100%; }
                                   ha-markdown$: |
                                     p { margin: 0; height: 100%; }
-                                    img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain; display: block; }
-                                    img:nth-of-type(1) { transform: scaleX(-1); animation: snapSwapA 10s infinite; }
-                                    img:nth-of-type(2) { animation: snapSwapB 10s infinite; }
-                                    @keyframes snapSwapA { 0%, 45% { opacity: 1; } 50%, 95% { opacity: 0; } 100% { opacity: 1; } }
-                                    @keyframes snapSwapB { 0%, 45% { opacity: 0; } 50%, 95% { opacity: 1; } 100% { opacity: 0; } }
+                                    img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain; display: block; opacity: 0; }
+                                    img:nth-of-type(1) { transform: scaleX(-1); animation: snapA 18s infinite; }
+                                    img:nth-of-type(2) { animation: snapB 18s infinite; }
+                                    img:nth-of-type(3) { animation: snapC 18s infinite; }
+                                    span { position: absolute; left: 10px; bottom: 8px; font-size: 13px; font-weight: 600; color: #e2e8f0;
+                                      background: rgba(0,0,0,0.55); padding: 3px 10px; border-radius: 10px; opacity: 0; }
+                                    span:nth-of-type(1) { animation: snapA 18s infinite; }
+                                    span:nth-of-type(2) { animation: snapB 18s infinite; }
+                                    span:nth-of-type(3) { animation: snapC 18s infinite; }
+                                    @keyframes snapA { 0%, 30% { opacity: 1; } 33.3%, 96% { opacity: 0; } 100% { opacity: 1; } }
+                                    @keyframes snapB { 0%, 30% { opacity: 0; } 33.3%, 63% { opacity: 1; } 66.6%, 100% { opacity: 0; } }
+                                    @keyframes snapC { 0%, 63% { opacity: 0; } 66.6%, 96% { opacity: 1; } 100% { opacity: 0; } }
                           - type: conditional
                             conditions:
                             - condition: state
@@ -482,68 +491,6 @@ views:
                                 **No active job**
 
                                 Send a print to the U1 and its preview shows up here
-                              card_mod:
-                                style:
-                                  .: |
-                                    ha-card {
-                                      aspect-ratio: 1 / 1;
-                                      display: flex; align-items: center; justify-content: center; text-align: center;
-                                      border-radius: 16px;
-                                      border: 2px dashed rgba(148,163,184,0.45);
-                                      background: radial-gradient(300px 200px at 50% 0%, rgba(99,102,241,0.18), transparent 70%), rgba(15,23,42,0.75);
-                                    }
-                                    ha-markdown { padding: 0 14px !important; color: #94a3b8 !important; font-size: 13px; }
-                                    ha-markdown p { margin: 4px 0 !important; }
-                                  ha-markdown$: |
-                                    ha-icon { --mdc-icon-size: 64px; color: #64748b; display: block; margin: 0 auto; }
-                                    p { margin: 4px 0; }
-                      - type: vertical-stack
-                        card_mod:
-                          style: |
-                            #root { --stack-card-gap: 0px; gap: 0px; }
-                        cards:
-                          - type: conditional
-                            conditions:
-                            - condition: state
-                              entity: sensor.snapmaker_u1_print_stage
-                              state: [preparing, printing, paused, cooling, ready]
-                            card:
-                              type: markdown
-                              content: |
-                                {% set t = (as_timestamp(now()) // 60) | int %}
-                                <img src="/local/snapmaker_u1_progress.png?v={{ t }}">
-
-                                Layer {{ states('sensor.YOURPRINTER_current_layer') | int(0) }} / {{ states('sensor.YOURPRINTER_total_layer') | int(0) }}
-                              card_mod:
-                                style:
-                                  .: |
-                                    ha-card {
-                                      aspect-ratio: 1 / 1;
-                                      position: relative;
-                                      border-radius: 16px;
-                                      overflow: hidden;
-                                      border: 1px solid rgba(148,163,184,0.16);
-                                      background: #1c1c1c;
-                                    }
-                                    ha-markdown { padding: 0 !important; width: 100%; height: 100%; }
-                                  ha-markdown$: |
-                                    p { margin: 0; height: 100%; }
-                                    img { width: 100%; height: 100%; object-fit: contain; display: block; }
-                                    p:nth-of-type(2) { position: absolute; left: 8px; bottom: 6px; height: auto; font-size: 12px; font-weight: 600;
-                                      color: #cbd5e1; background: rgba(0,0,0,0.5); padding: 2px 8px; border-radius: 8px; }
-                          - type: conditional
-                            conditions:
-                            - condition: state
-                              entity: sensor.snapmaker_u1_print_stage
-                              state_not: [preparing, printing, paused, cooling, ready]
-                            card:
-                              type: markdown
-                              content: |
-                                <ha-icon icon="mdi:layers-triple-outline"></ha-icon>
-
-                                **Layer view**
-
-                                Fills in layer by layer while a print runs
                               card_mod:
                                 style:
                                   .: |
