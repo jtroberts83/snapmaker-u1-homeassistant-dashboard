@@ -2,6 +2,9 @@
 
 Every change to this repo is committed with a version bump (semantic versioning: MAJOR.MINOR.PATCH). The current version is in [`VERSION`](VERSION).
 
+## 1.5.1
+- Docs and Claude Skill brought up to date: README feature list, new TROUBLESHOOTING section (toolhead colors, ACTIVE label, elapsed line, countdown units, keep-awake), update guidance in INSTALL.md, and skill steps for the new print-stage attributes, optional keep-awake script and updating an existing install.
+
 ## 1.5.0
 - New: elapsed print time under the countdown ("ELAPSED hh:mm" while printing, "PRINT TOOK hh:mm" during cooling and ready). Uses new `started_at` / `ended_at` attributes on `sensor.snapmaker_u1_print_stage`, so **update the print-stage sensor in packages/snapmaker_u1.yaml** and reload template entities (or restart). Elapsed is wall-clock time since the print started, pauses included.
 - Phone dashboard now shows the print thumbnail next to the filename and countdown, like the desktop layout.

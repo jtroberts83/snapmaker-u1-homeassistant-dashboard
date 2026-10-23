@@ -14,12 +14,12 @@ in each toolhead, bed-cooling progress, a print-stage banner, and email/phone/sp
 ## What you get
 
 - **Stage banner**: *Preparing → Printing (with estimated completion time) → Cooling Bed → Complete – Ready to remove print → Waiting for new print job…*
-- **Big red countdown** (`HH:MM` remaining) and a progress bar
+- **Big red countdown** (`HH:MM` remaining) with the elapsed print time under it ("ELAPSED 01:23", then "PRINT TOOK 06:12" when done) and a progress bar
 - **Live camera** (about 1 frame per second) with a friendly placeholder when the camera is off
-- **Toolhead 1–4 columns**: temperature, **Heating / Cooling / Holding / Sleeping** status with color + icon, heater power %, and a box showing each spool's **color, material and vendor**
+- **Toolhead 1–4 columns**: temperature, **Heating / Cooling / Holding / Sleeping** status with color + icon, heater power %, and a box showing each spool's **color, material and vendor**. The column background follows the state (slate red while heating or holding above 350 °F, slate blue while cooling or holding, slate gray when sleeping), and a toolhead in use shows a red **TOOLHEAD n - ACTIVE** label
 - **Heated bed** card with **Heating / Cooling / Holding / Cool** status and a progress bar counting down to **104 °F (40 °C)**, the point where the print is safe to remove
 - Enclosure temperature (colored so 90–125 °F reads as healthy), layer count, printer memory
-- Print preview (thumbnail) that keeps showing after the print completes, with a placeholder when there is no job
+- Print preview (thumbnail), on both desktop and phone, that keeps showing after the print completes, with a placeholder when there is no job
 - Pause / Resume buttons and an **E-STOP with a confirmation prompt**
 - Lifetime stats with **100 fun comparisons** that grow as your filament total grows ("≈ 2.3× the length of the Titanic" … all the way to light-years)
 - Notifications when a print finishes (after the bed has cooled): **email with a photo**, phone push, persistent notification, optional spoken announcement

@@ -84,7 +84,7 @@ After substituting, search the result for `YOUR` and `PRINTER_IP`. Nothing but c
 1. Check whether `configuration.yaml` already has `homeassistant: packages: !include_dir_named packages`. If not, show the user the exact lines to add (merge into an existing `homeassistant:` block; never create a second one). Offer a backup.
 2. Write `packages/snapmaker_u1.yaml` (customized) to `/config/packages/`. It also needs the printer IP in its REST sensors and the `shell_command` for the camera script.
 3. Tell the user to run **Developer Tools, YAML, Check configuration**, then do a **full restart**. Wait for them to confirm.
-4. After restart, verify the new entities exist: `sensor.snapmaker_u1_print_stage`, the bed and tool trend sensors, and the 12 filament sensors (`sensor.snapmaker_u1_tool_1_filament_color` and so on). Unavailable REST sensors almost always mean a wrong printer IP.
+4. After restart, verify the new entities exist: `sensor.snapmaker_u1_print_stage`, the bed and tool trend sensors, and the 12 filament sensors (`sensor.snapmaker_u1_tool_1_filament_color` and so on). Unavailable REST sensors almost always mean a wrong printer IP. The print-stage sensor should also carry the attributes `ready_since`, `started_at` and `ended_at`; `started_at` is empty until a print starts, which is normal. These feed the "ELAPSED" line on the countdown card.
 
 ## Step 5: camera and keep-alive
 
@@ -112,10 +112,18 @@ dashboard in Settings, Dashboards, then raw configuration editor, paste, save. I
 tools, do so with the user's yes. If the page shows "Custom element doesn't exist", Mushroom or card-mod is
 missing or the browser needs a hard refresh. "Entity not found" means a prefix or sensor problem. See TROUBLESHOOTING.md.
 
-## Step 9: verify and wrap up
+## Step 9: optional extras (offer, don't push)
+
+- **Keep the screen awake** (`www/snapmaker-keep-awake.js`, INSTALL.md section 11): only offer it to a user who leaves the desktop dashboard on a monitor. Browsers allow it only over HTTPS or at localhost, so ask how they open Home Assistant. If it is plain `http://<ip>:8123`, explain the Chrome/Edge "treat insecure origin as secure" flag, PowerToys Awake, or Fully Kiosk Browser instead. Adding the resource is a dashboard-resource change, so ask first.
+
+## Updating an existing install
+
+If the user already installed an earlier version, read `VERSION` and `CHANGELOG.md` in the repo and tell them what changed since theirs. Typical updates: replace the changed package sections (the print-stage sensor gains attributes in some releases; reload template entities or restart afterwards), then re-paste `dashboards/desktop.yaml` and `phone.yaml` customized with their values. Never overwrite their existing dashboards or configuration without a backup and a clear yes.
+
+## Step 10: verify and wrap up
 
 Read back the key states and tell the user what you see (stage, bed temperature, four toolhead temperatures, filament
-colors, camera state). Walk through the INSTALL.md step 10 checklist. List anything that still needs the user: HACS items,
+colors, camera state, and the thumbnail and elapsed-time line once a print is running). Walk through the INSTALL.md step 10 checklist. List anything that still needs the user: HACS items,
 restart, Gmail App password, or the camera picture check. Summarize exactly what you created or changed, with entity IDs and file paths, so they can undo it.
 
 If a step fails twice, stop, show the error, and point to the matching TROUBLESHOOTING.md section instead of improvising.

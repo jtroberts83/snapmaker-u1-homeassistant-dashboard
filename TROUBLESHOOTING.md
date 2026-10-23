@@ -8,6 +8,7 @@ Find your symptom below. Most problems come from a wrong entity prefix, a missin
 - [Entity not found / custom element missing](#entity-not-found--custom-element-missing)
 - [Thumbnail and placeholders](#thumbnail-and-placeholders)
 - [Stage banner looks wrong](#stage-banner-looks-wrong)
+- [Toolhead colors, ACTIVE label and the elapsed line](#toolhead-colors-active-label-and-the-elapsed-line)
 - [Page background not applying](#page-background-not-applying)
 - [Emails and notifications](#emails-and-notifications)
 - [Entities the dashboards expect](#entities-the-dashboards-expect)
@@ -68,6 +69,16 @@ Stages are decided by `sensor.snapmaker_u1_print_stage`:
 
 If it sticks, check Developer Tools, States for that sensor and its `ready_since` attribute. The dashboard also computes a fallback if the sensor is unavailable.
 
+## Toolhead colors, ACTIVE label and the elapsed line
+
+**Toolhead column colors.** A toolhead counts as *heating* when its temperature is rising by more than 2 °F per minute **and** its heater power is 10 % or more; *cooling* when falling by more than 2 °F per minute at 120 °F or above; *holding* at 150 °F or above otherwise; *sleeping* below that. Column background: slate red when heating or when holding above 350 °F, slate blue for cooling or other holding, slate gray when sleeping. The red **TOOLHEAD n - ACTIVE** label appears only while holding above 350 °F. To change these limits, edit the numbers in `dashboards/*.yaml` (search for `350`, `150` and `pw >= 10`).
+
+**"ELAPSED hh:mm" line missing.** It needs the `started_at` attribute on `sensor.YOURPRINTER...print_stage` (the print-stage sensor in `packages/snapmaker_u1.yaml`). Check it in Developer Tools, States. If the attribute is missing, you are on an older copy of the sensor: update it and reload template entities. The attribute is empty until a print starts after the update, and the line shows only while preparing, printing, paused (ELAPSED) or cooling and ready (PRINT TOOK). Elapsed is wall-clock time, so pauses count, and a Home Assistant restart in the middle of a print can reset it.
+
+**Countdown looks wrong by a factor of 60.** The countdown reads `slicer_print_time_left_estimate` and converts using the sensor's unit (hours, minutes or seconds). If the sensor has no unit, values under 100 are treated as hours and larger ones as seconds.
+
+**Screen keeps going to sleep.** The optional `www/snapmaker-keep-awake.js` only works when Home Assistant is opened over HTTPS or at localhost, not at `http://<ip>:8123` (see INSTALL.md section 11). Open the browser console and look for `[snapmaker-keep-awake]`.
+
 ## Page background not applying
 
 The background is set on the view (`background:` in the dashboard YAML). Make sure the dashboard is in YAML/raw mode with the view intact, and that you pasted the whole file. Alternatives are in `docs/background_options.html`.
@@ -81,7 +92,7 @@ The background is set on the view (`background:` in the dashboard YAML). Make su
 
 ## Entities the dashboards expect
 
-All use your prefix (shown here as `YOURPRINTER`, for example `basement_ui_3d_printer_1`).
+All use your prefix (shown here as `YOURPRINTER`, for example `snapmaker_u1`).
 
 **Buttons:** `button.YOURPRINTER_emergency_stop`, `button.YOURPRINTER_pause_print`, `button.YOURPRINTER_resume_print`
 

@@ -375,4 +375,4 @@ If you leave the desktop dashboard on a monitor, you can stop the screen from di
 
 ### Updating later
 
-When this repository gets updates: download it again, run `customize.py` again, and re-copy the changed files (package → restart; automations and dashboards → re-paste).
+When this repository gets updates: read `CHANGELOG.md` to see what changed, download the repo again, run `customize.py` again, and re-copy the changed files (package → reload template entities or restart; automations and dashboards → re-paste). Some releases add attributes to the print-stage sensor in the package, so always update the package before the dashboards.
