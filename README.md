@@ -19,7 +19,7 @@ in each toolhead, bed-cooling progress, a print-stage banner, and email/phone/sp
 - **Toolhead 1–4 columns**: temperature, **Heating / Cooling / Holding / Sleeping** status with color + icon, heater power %, and a box showing each spool's **color, material and vendor**. The column background follows the state (slate red while heating or holding above 350 °F, slate blue while cooling or holding, slate gray when sleeping), and a toolhead in use shows a red **TOOLHEAD n - ACTIVE** label
 - **Heated bed** card with **Heating / Cooling / Holding / Cool** status and a progress bar counting down to **104 °F (40 °C)**, the point where the print is safe to remove
 - Enclosure temperature (colored so 90–125 °F reads as healthy), layer count, printer memory
-- Print preview (thumbnail), on both desktop and phone, that keeps showing after the print completes, with a placeholder when there is no job
+- Print preview (thumbnail), on both desktop and phone, that keeps showing after the print completes, with a placeholder when there is no job. It **swaps every 5 seconds** with a picture of the whole model from a second angle, and a second preview next to it **fills in layer by layer** (refreshed every 5 minutes), both drawn from the print's G-code
 - Pause / Resume buttons and an **E-STOP with a confirmation prompt**
 - Lifetime stats with **100 fun comparisons** that grow as your filament total grows ("≈ 2.3× the length of the Titanic" … all the way to light-years)
 - Notifications when a print finishes (after the bed has cooled): **email with a photo**, phone push, persistent notification, optional spoken announcement
@@ -63,7 +63,7 @@ If you use Claude and have a Home Assistant MCP connection, you can let Claude w
 | `customize.py` | Fills in your printer's details in every file (optional, but easiest) |
 | `packages/snapmaker_u1.yaml` | All helper sensors in one Home Assistant "package" file |
 | `scripts/snapmaker_camera_pulse.py` | Keeps the U1 camera awake |
-| `automations/` | Camera keep-alive, thumbnail saver, print-finished notifications, progress emails |
+| `automations/` | Camera keep-alive, thumbnail saver, print previews, print-finished notifications, progress emails |
 | `dashboards/desktop.yaml`, `dashboards/phone.yaml` | The two dashboards |
 | `skill/snapmaker-u1-setup/` | Claude Skill that guides the install through your Home Assistant MCP connection |
 | `www/snapmaker-keep-awake.js` | Optional: keeps the computer screen awake while the dashboard is showing (INSTALL.md, section 11) |

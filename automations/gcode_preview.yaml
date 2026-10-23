@@ -1,0 +1,40 @@
+# Snapmaker U1 - second-angle and layer-by-layer print previews
+# Runs scripts/snapmaker_gcode_preview.py, which draws two pictures from the print's G-code:
+#   /local/snapmaker_u1_model_angle.png   the whole model from another angle (swaps with the slicer thumbnail)
+#   /local/snapmaker_u1_progress.png      the model filling in layer by layer
+# The script runs in the background and returns at once. Needs shell_command.snapmaker_gcode_preview
+# (in packages/snapmaker_u1.yaml) and sensor.snapmaker_u1_print_stage.
+# Add via Settings -> Automations & scenes -> Create automation -> (three dots) -> Edit in YAML.
+
+alias: Snapmaker U1 - Print Previews
+description: Draws the second-angle preview and the layer-by-layer preview from the G-code, every 5 minutes while printing.
+mode: single
+max_exceeded: silent
+
+triggers:
+  # When a print starts and when it finishes (so the final picture shows every layer)
+  - trigger: state
+    entity_id: sensor.snapmaker_u1_print_stage
+    to:
+      - preparing
+      - printing
+      - cooling
+  # Every 5 minutes while printing
+  - trigger: time_pattern
+    minutes: "/5"
+  # After a Home Assistant restart in the middle of a print
+  - trigger: homeassistant
+    event: start
+
+conditions:
+  - condition: state
+    entity_id: sensor.snapmaker_u1_print_stage
+    state:
+      - preparing
+      - printing
+      - paused
+      - cooling
+
+actions:
+  - action: shell_command.snapmaker_gcode_preview
+    continue_on_error: true

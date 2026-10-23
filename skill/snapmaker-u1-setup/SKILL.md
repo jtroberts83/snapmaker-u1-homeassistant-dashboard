@@ -84,19 +84,19 @@ After substituting, search the result for `YOUR` and `PRINTER_IP`. Nothing but c
 1. Check whether `configuration.yaml` already has `homeassistant: packages: !include_dir_named packages`. If not, show the user the exact lines to add (merge into an existing `homeassistant:` block; never create a second one). Offer a backup.
 2. Write `packages/snapmaker_u1.yaml` (customized) to `/config/packages/`. It also needs the printer IP in its REST sensors and the `shell_command` for the camera script.
 3. Tell the user to run **Developer Tools, YAML, Check configuration**, then do a **full restart**. Wait for them to confirm.
-4. After restart, verify the new entities exist: `sensor.snapmaker_u1_print_stage`, the bed and tool trend sensors, and the 12 filament sensors (`sensor.snapmaker_u1_tool_1_filament_color` and so on). Unavailable REST sensors almost always mean a wrong printer IP. The print-stage sensor should also carry the attributes `ready_since`, `started_at` and `ended_at`; `started_at` is empty until a print starts, which is normal. These feed the "ELAPSED" line on the countdown card.
+4. After restart, verify `shell_command.snapmaker_gcode_preview` exists (an "Action not found" error means no full restart yet), then verify the new entities exist: `sensor.snapmaker_u1_print_stage`, the bed and tool trend sensors, and the 12 filament sensors (`sensor.snapmaker_u1_tool_1_filament_color` and so on). Unavailable REST sensors almost always mean a wrong printer IP. The print-stage sensor should also carry the attributes `ready_since`, `started_at` and `ended_at`; `started_at` is empty until a print starts, which is normal. These feed the "ELAPSED" line on the countdown card.
 
 ## Step 5: camera and keep-alive
 
 1. The user (or you, if you can) adds the **Generic Camera** integration: still image URL `http://<PRINTER_IP>/server/files/camera/monitor.jpg`, no authentication, frame rate 1. The resulting entity must match `YOUR_CAMERA_ENTITY_ID`.
 2. **API key (the user does this, you never handle it):** the keep-alive needs the printer's API key, shown on the printer's web page at its IP address. Have the user add the line `snapmaker_api_key: <key>` to `/config/secrets.yaml` themselves. Do not ask them to paste the key to you, and do not write it into any file. You can ask them to confirm they added it.
-3. Write `scripts/snapmaker_camera_pulse.py` to `/config/scripts/`. Then check that `shell_command.send_snapmaker_pulse` exists (it is defined in the package). "Action not found" means no full restart yet.
+3. Write `scripts/snapmaker_camera_pulse.py` and `scripts/snapmaker_gcode_preview.py` (the print-preview drawing script, no API key needed) to `/config/scripts/`. Then check that `shell_command.send_snapmaker_pulse` exists (it is defined in the package). "Action not found" means no full restart yet.
 4. Create the `camera_keepalive` automation. Offer a test run and have the user confirm the picture stays live for a few minutes. If it freezes, follow TROUBLESHOOTING.md "Camera".
 
 ## Step 6: automations
 
 Create from the customized files, one at a time, confirming each: `camera_keepalive`, `save_thumbnail`,
-`print_finished`, and (only with an email entity) `progress_emails`. Do not trigger them manually unless the
+`gcode_preview`, `print_finished`, and (only with an email entity) `progress_emails`. Do not trigger them manually unless the
 user asks, because they send real emails and phone notifications.
 
 ## Step 7: Gmail / SMTP (optional)

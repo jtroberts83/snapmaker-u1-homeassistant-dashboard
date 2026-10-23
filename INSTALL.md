@@ -167,7 +167,7 @@ A *package* is just a file that bundles related Home Assistant configuration. On
      packages: !include_dir_named packages
    ```
 3. Copy **`build/packages/snapmaker_u1.yaml`** into **`/config/packages/`**.
-4. Copy **`build/scripts/snapmaker_camera_pulse.py`** into **`/config/scripts/`**.
+4. Copy **`build/scripts/snapmaker_camera_pulse.py`** and **`build/scripts/snapmaker_gcode_preview.py`** into **`/config/scripts/`**.
 5. **Developer Tools → YAML → Check configuration.** It must say *"Configuration will not prevent Home Assistant from starting!"*. If it reports an error, read the line it names and see [TROUBLESHOOTING.md](TROUBLESHOOTING.md).
 6. **Restart Home Assistant** (full restart, see the tip in step 0). The first restart after creating `www` also makes the `/local/...` web path available, which the thumbnail and snapshots use.
 
@@ -238,7 +238,7 @@ You'll do this in step 7 with `automations/camera_keepalive.yaml` (calls the scr
 
 ## 7. Create the automations
 
-You have four automation files in `build/automations/`. Creating each one is the same routine:
+You have five automation files in `build/automations/`. Creating each one is the same routine:
 
 1. **Settings → Automations & scenes → Create automation → Create new automation.**
 2. Click **⋮ (top right) → Edit in YAML.**
@@ -249,10 +249,13 @@ You have four automation files in `build/automations/`. Creating each one is the
 |---|---|---|
 | `camera_keepalive.yaml` | Keeps the camera awake (every minute) | step 6 |
 | `save_thumbnail.yaml` | Saves a copy of the print preview while printing so it stays visible after the print completes | step 5 |
+| `gcode_preview.yaml` | Draws the extra print previews from the G-code: the whole model from a second angle (it swaps with the slicer thumbnail every 5 seconds) and a layer-by-layer picture that updates every 5 minutes while printing | step 5 |
 | `print_finished.yaml` | When a print completes, waits for the bed to cool to 40 °C, then emails you the photo and stats, pushes to your phone, adds a Home Assistant notification and announces on a speaker (any part you left blank is already removed) | step 8 for email |
 | `progress_emails.yaml` | Emails a snapshot + stats at 1 %, 25 %, 50 % and 75 % | step 8 |
 
-**Check:** the four automations are listed and switched on. The camera keep-alive will now keep your camera picture fresh.
+**Check:** the five automations are listed and switched on. The camera keep-alive will now keep your camera picture fresh. The preview pictures appear at the start of your next print (the first one takes a few seconds to a minute to draw, longer for very large files) in `/config/www/` as `snapmaker_u1_model_angle.png` and `snapmaker_u1_progress.png`.
+
+> **Choose the angles.** In `packages/snapmaker_u1.yaml`, add options to the `snapmaker_gcode_preview` line, for example `... PRINTER_IP --model-yaw 145 --model-pitch 32 --progress-yaw -35 --progress-pitch 32`. Yaw 0 looks from the front of the printer, 90 from the left, 180 from the back, -90 from the right. Pitch is how high you look down from (0 level, 90 straight down).
 
 > **Test the print-finished flow without printing:** open the automation → **⋮ → Run actions**. (It will say the print is not complete and stop, which is normal; a real test happens at the end of your next print.)
 

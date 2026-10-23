@@ -8,6 +8,7 @@ Find your symptom below. Most problems come from a wrong entity prefix, a missin
 - [Entity not found / custom element missing](#entity-not-found--custom-element-missing)
 - [Thumbnail and placeholders](#thumbnail-and-placeholders)
 - [Stage banner looks wrong](#stage-banner-looks-wrong)
+- [Print previews (second angle and layer by layer)](#print-previews-second-angle-and-layer-by-layer)
 - [Toolhead colors, ACTIVE label and the elapsed line](#toolhead-colors-active-label-and-the-elapsed-line)
 - [Page background not applying](#page-background-not-applying)
 - [Emails and notifications](#emails-and-notifications)
@@ -68,6 +69,18 @@ Stages are decided by `sensor.snapmaker_u1_print_stage`:
 | Waiting for new print job | ready for 30 minutes or more |
 
 If it sticks, check Developer Tools, States for that sensor and its `ready_since` attribute. The dashboard also computes a fallback if the sensor is unavailable.
+
+## Print previews (second angle and layer by layer)
+
+The two extra previews are drawn by `scripts/snapmaker_gcode_preview.py`, started by the *Print Previews* automation at the start of a print, when it finishes, and every 5 minutes in between. It downloads the print's G-code from the printer, draws the tool paths, and saves `snapmaker_u1_model_angle.png` and `snapmaker_u1_progress.png` in `/config/www/`.
+
+- **Both previews show a blank dark picture, or the old print.** The picture is drawn a few seconds to a minute after the print starts (longer for a very large file). Wait, then refresh the browser. Check that the two files exist and have a recent time in `/config/www/`.
+- **"Action shell_command.snapmaker_gcode_preview not found".** The `shell_command` line is missing from your configuration, or Home Assistant has not had a full restart since you added it.
+- **Nothing is created.** Run it by hand from the Terminal add-on: `python3 /config/scripts/snapmaker_gcode_preview.py <PRINTER_IP> --foreground`. It prints what it is doing, or the error (for example it cannot reach the printer on port 7125, or the file could not be downloaded). Also look at `/config/.snapmaker_preview/last_error.log`.
+- **"no extruding moves found".** The G-code uses a style the script doesn't understand. Open an issue with the first few hundred lines of the file.
+- **Layers fill in too early or too late.** The progress is taken from how far through the file the printer is. If your printer does not report that, it uses the current layer number instead.
+- **Very large files look sparse.** Above about 350,000 line segments the script draws every second or third layer to stay quick.
+- **The picture doesn't swap every 5 seconds.** The swap is a CSS animation in the dashboard card; it needs card-mod from HACS. The slicer thumbnail side comes from the printer's own thumbnail.
 
 ## Toolhead colors, ACTIVE label and the elapsed line
 

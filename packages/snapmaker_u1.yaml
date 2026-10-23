@@ -24,6 +24,8 @@
 
 shell_command:
   send_snapmaker_pulse: "python3 /config/scripts/snapmaker_camera_pulse.py PRINTER_IP"
+  # Draws the second-angle and layer-by-layer previews from the print's G-code (runs in the background)
+  snapmaker_gcode_preview: "python3 /config/scripts/snapmaker_gcode_preview.py PRINTER_IP"
 
 # ----- Fahrenheit sensors + print stage + bed peak -------------------------------------
 template:

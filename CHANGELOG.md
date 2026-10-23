@@ -2,6 +2,9 @@
 
 Every change to this repo is committed with a version bump (semantic versioning: MAJOR.MINOR.PATCH). The current version is in [`VERSION`](VERSION).
 
+## 1.6.0
+- New: print previews drawn from the G-code (`scripts/snapmaker_gcode_preview.py`, `automations/gcode_preview.yaml`). The slicer thumbnail now swaps every 5 seconds with the whole model from a second angle, and a new preview beside it fills in layer by layer, updated every 5 minutes. On the phone the two previews sit side by side in a row of their own. Needs the new `shell_command.snapmaker_gcode_preview` in the package. Angles are adjustable with command-line options.
+
 ## 1.5.1
 - Docs and Claude Skill brought up to date: README feature list, new TROUBLESHOOTING section (toolhead colors, ACTIVE label, elapsed line, countdown units, keep-awake), update guidance in INSTALL.md, and skill steps for the new print-stage attributes, optional keep-awake script and updating an existing install.
 

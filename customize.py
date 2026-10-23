@@ -34,8 +34,10 @@ OUT = os.path.join(HERE, "build")
 FILES = [
     "packages/snapmaker_u1.yaml",
     "scripts/snapmaker_camera_pulse.py",
+    "scripts/snapmaker_gcode_preview.py",
     "automations/camera_keepalive.yaml",
     "automations/save_thumbnail.yaml",
+    "automations/gcode_preview.yaml",
     "automations/print_finished.yaml",
     "automations/progress_emails.yaml",
     "dashboards/desktop.yaml",
