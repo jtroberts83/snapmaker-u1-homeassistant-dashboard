@@ -15,6 +15,8 @@ Usage:   python3 snapmaker_gcode_preview.py <printer-ip> [options]
 Options: --port 7125                     Moonraker port
          --model-yaw 145 --model-pitch 32        angle of the "model" picture (degrees)
          --progress-yaw -35 --progress-pitch 32  angle of the layer-by-layer picture
+         --progress-hide-supports        leave support material out of the layer-by-layer picture
+         --model-hide-supports           leave support material out of the second-angle picture
          --out /config/www               where the pictures are written
          --cache /config/.snapmaker_preview      where parsed G-code is cached
          --foreground                    do the work now and print what happens (for testing)
@@ -101,6 +103,8 @@ def parse_gcode(path):
     abs_xyz = True
     abs_e = True
     layers = []      # one flat array('f') per layer: x0 y0 x1 y1 ...
+    supports = []    # the same, for support material (slicers mark it with ";TYPE:Support")
+    is_support = False
     layer_z = []
     layer_off = []   # byte offset in the file where each layer starts
     curz = None
@@ -113,6 +117,8 @@ def parse_gcode(path):
             start = offset
             offset += len(raw)
             if not raw or raw[0] in (59, 10, 13):      # ';' or empty line
+                if raw.startswith(b";TYPE:"):
+                    is_support = b"support" in raw.lower()
                 continue
             code = raw.split(b";", 1)[0].split()
             if not code:
@@ -144,10 +150,11 @@ def parse_gcode(path):
                 if de > 0 and (nx != x or ny != y):
                     if curz is None or abs(nz - curz) > 0.004:
                         layers.append(array("f"))
+                        supports.append(array("f"))
                         layer_z.append(nz)
                         layer_off.append(start)
                         curz = nz
-                    layers[-1].extend((x, y, nx, ny))
+                    (supports if is_support else layers)[-1].extend((x, y, nx, ny))
                     if x < minx: minx = x
                     if nx < minx: minx = nx
                     if y < miny: miny = y
@@ -175,7 +182,7 @@ def parse_gcode(path):
                             pass
     if not layers:
         raise ValueError("no extruding moves found in the G-code")
-    return {"layers": layers, "layer_z": layer_z, "layer_off": layer_off,
+    return {"version": 2, "layers": layers, "supports": supports, "layer_z": layer_z, "layer_off": layer_off,
             "bbox": (minx, miny, 0.0, maxx, maxy, maxz)}
 
 
@@ -286,9 +293,10 @@ def pick_layers(count, keep_last, max_segments, seg_total):
     return idx
 
 
-def render(parsed, yaw, pitch, printed=None):
+def render(parsed, yaw, pitch, printed=None, hide_supports=False):
     """printed = number of layers already printed (None = draw everything as finished)."""
     layers, lz, bbox = parsed["layers"], parsed["layer_z"], parsed["bbox"]
+    supports = parsed.get("supports") or [array("f")] * len(layers)
     canvas = Canvas(SIZE, SS)
     proj = Projector(bbox, yaw, pitch, canvas.n)
     # footprint of the model on the plate
@@ -300,7 +308,7 @@ def render(parsed, yaw, pitch, printed=None):
         b = proj(corners[(i + 1) % 4][0], corners[(i + 1) % 4][1], 0.0)
         canvas.line(a[0], a[1], b[0], b[1], FOOT)
     total = len(layers)
-    seg_total = sum(len(l) // 4 for l in layers)
+    seg_total = sum(len(l) // 4 for l in layers) + (0 if hide_supports else sum(len(l) // 4 for l in supports))
     last = None if printed is None else max(0, min(total, printed) - 1)
     draw = pick_layers(total, last, MAX_SEGS, seg_total)
     top = max(lz) or 1.0
@@ -315,11 +323,11 @@ def render(parsed, yaw, pitch, printed=None):
         else:
             color = GHOST
         z = lz[li]
-        arr = layers[li]
-        for k in range(0, len(arr), 4):
-            x0, y0 = proj(arr[k], arr[k + 1], z)
-            x1, y1 = proj(arr[k + 2], arr[k + 3], z)
-            canvas.line(x0, y0, x1, y1, color)
+        for arr in ((layers[li],) if hide_supports else (supports[li], layers[li])):
+            for k in range(0, len(arr), 4):
+                x0, y0 = proj(arr[k], arr[k + 1], z)
+                x1, y1 = proj(arr[k + 2], arr[k + 3], z)
+                canvas.line(x0, y0, x1, y1, color)
     return canvas.to_png()
 
 
@@ -360,6 +368,8 @@ def work(args):
         try:
             with open(cache_file, "rb") as fh:
                 parsed = pickle.load(fh)
+            if parsed.get("version") != 2:
+                parsed = None
         except Exception:
             parsed = None
     if parsed is None:
@@ -380,8 +390,9 @@ def work(args):
     total = len(parsed["layers"])
     # the whole model from the second angle: once per file
     done_key = open(marker).read() if os.path.exists(marker) else ""
+    key = key + "|" + "%s,%s,%s" % (args.model_yaw, args.model_pitch, args.model_hide_supports)
     if done_key != key:
-        write_png(out_model, render(parsed, args.model_yaw, args.model_pitch, None))
+        write_png(out_model, render(parsed, args.model_yaw, args.model_pitch, None, args.model_hide_supports))
         with open(marker, "w") as fh:
             fh.write(key)
         log(args, "model picture written")
@@ -394,7 +405,7 @@ def work(args):
         printed = min(total, int(st["current_layer"]))
     else:
         printed = 0
-    write_png(out_prog, render(parsed, args.progress_yaw, args.progress_pitch, printed))
+    write_png(out_prog, render(parsed, args.progress_yaw, args.progress_pitch, printed, args.progress_hide_supports))
     log(args, "progress picture written: %d of %d layers" % (printed, total))
     return 0
 
@@ -412,6 +423,8 @@ def main():
     ap.add_argument("--model-pitch", type=float, default=32.0)
     ap.add_argument("--progress-yaw", type=float, default=-35.0)
     ap.add_argument("--progress-pitch", type=float, default=32.0)
+    ap.add_argument("--progress-hide-supports", action="store_true")
+    ap.add_argument("--model-hide-supports", action="store_true")
     ap.add_argument("--out", default=os.environ.get("SNAPMAKER_PREVIEW_OUT", "/config/www"))
     ap.add_argument("--cache", default=os.environ.get("SNAPMAKER_PREVIEW_CACHE", "/config/.snapmaker_preview"))
     ap.add_argument("--foreground", action="store_true")

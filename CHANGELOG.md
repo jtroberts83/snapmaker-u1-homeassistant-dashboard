@@ -2,6 +2,9 @@
 
 Every change to this repo is committed with a version bump (semantic versioning: MAJOR.MINOR.PATCH). The current version is in [`VERSION`](VERSION).
 
+## 1.6.1
+- New: `--progress-hide-supports` and `--model-hide-supports` options for the G-code previews hide support structures (needs `;TYPE:Support` comments in the G-code). Supports are still drawn by default. The parsed-file cache format changed, so the first preview after updating re-reads the file.
+
 ## 1.6.0
 - New: print previews drawn from the G-code (`scripts/snapmaker_gcode_preview.py`, `automations/gcode_preview.yaml`). The slicer thumbnail now swaps every 5 seconds with the whole model from a second angle, and a new preview beside it fills in layer by layer, updated every 5 minutes. On the phone the two previews sit side by side in a row of their own. Needs the new `shell_command.snapmaker_gcode_preview` in the package. Angles are adjustable with command-line options.
 

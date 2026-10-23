@@ -79,6 +79,7 @@ The two extra previews are drawn by `scripts/snapmaker_gcode_preview.py`, starte
 - **Nothing is created.** Run it by hand from the Terminal add-on: `python3 /config/scripts/snapmaker_gcode_preview.py <PRINTER_IP> --foreground`. It prints what it is doing, or the error (for example it cannot reach the printer on port 7125, or the file could not be downloaded). Also look at `/config/.snapmaker_preview/last_error.log`.
 - **"no extruding moves found".** The G-code uses a style the script doesn't understand. Open an issue with the first few hundred lines of the file.
 - **Layers fill in too early or too late.** The progress is taken from how far through the file the printer is. If your printer does not report that, it uses the current layer number instead.
+- **Supports show (or don't hide) in the layer view.** Supports are drawn by default. Add `--progress-hide-supports` (and `--model-hide-supports` for the other picture) to the `snapmaker_gcode_preview` line and fully restart. It works only if the G-code has `;TYPE:Support` / `;TYPE:Support interface` comments; check with a text editor. Without them, nothing can be hidden.
 - **Very large files look sparse.** Above about 350,000 line segments the script draws every second or third layer to stay quick.
 - **The picture doesn't swap every 5 seconds.** The swap is a CSS animation in the dashboard card; it needs card-mod from HACS. The slicer thumbnail side comes from the printer's own thumbnail.
 
