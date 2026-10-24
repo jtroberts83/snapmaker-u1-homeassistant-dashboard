@@ -18,6 +18,7 @@ Options: --port 7125                     Moonraker port
          --progress-hide-supports        leave support material out of the layer-by-layer picture
          --generic-colors                use the height gradient instead of the real filament colors
          --model-hide-supports           leave support material out of the second-angle picture
+         --tag 2                         for a second printer: writes snapmaker_u1_2_*.png and uses its own cache folder
          --out /config/www               where the pictures are written
          --cache /config/.snapmaker_preview      where parsed G-code is cached
          --foreground                    do the work now and print what happens (for testing)
@@ -408,8 +409,8 @@ def placeholder_png(text_rows=3):
 # ----------------------------------------------------------------------------- main work
 def work(args):
     base = "http://%s:%d" % (args.ip, args.port)
-    out_model = os.path.join(args.out, "snapmaker_u1_model_angle.png")
-    out_prog = os.path.join(args.out, "snapmaker_u1_progress.png")
+    out_model = os.path.join(args.out, "snapmaker_u1%s_model_angle.png" % args.suffix)
+    out_prog = os.path.join(args.out, "snapmaker_u1%s_progress.png" % args.suffix)
     st = printer_state(base)
     filename = st["filename"]
     if not filename:
@@ -485,10 +486,14 @@ def main():
     ap.add_argument("--model-hide-supports", action="store_true")
     ap.add_argument("--generic-colors", action="store_true", help="use the height gradient instead of the filament colors")
     ap.add_argument("--out", default=os.environ.get("SNAPMAKER_PREVIEW_OUT", "/config/www"))
-    ap.add_argument("--cache", default=os.environ.get("SNAPMAKER_PREVIEW_CACHE", "/config/.snapmaker_preview"))
+    ap.add_argument("--cache", default=os.environ.get("SNAPMAKER_PREVIEW_CACHE"))
+    ap.add_argument("--tag", default="", help="second printer: use 2 (files become snapmaker_u1_2_*.png, own cache folder)")
     ap.add_argument("--foreground", action="store_true")
     ap.add_argument("--worker", action="store_true", help=argparse.SUPPRESS)
     args = ap.parse_args()
+    args.suffix = "_" + args.tag if args.tag else ""
+    if not args.cache:
+        args.cache = "/config/.snapmaker_preview" + args.suffix
 
     if args.foreground or args.worker:
         lock = os.path.join(args.cache, "running.lock")

@@ -66,6 +66,43 @@ def clean_prefix(value):
     return value
 
 
+def second_printer(text, old, new):
+    """Turn text written for printer 1 into text for printer 2.
+
+    old / new are dicts with 'prefix', 'camera' and 'ip' (old = what the text contains now, e.g. the
+    YOURPRINTER tokens; new = the real values for printer 2). Everything printer 2 owns gets a '2':
+    helper sensors snapmaker_u1_2_*, picture files snapmaker_u1_2_*.png, shell commands *_2, the
+    API key secret snapmaker_api_key_2, and automation names "Snapmaker U1 #2 - ...".
+    """
+    t = text
+    for key, mark in (("camera", "@@CAM2@@"), ("ip", "@@IP2@@"), ("prefix", "@@PFX2@@")):
+        t = t.replace(old[key], mark)
+    t = t.replace('snapmaker_camera_pulse.py @@IP2@@"', 'snapmaker_camera_pulse.py @@IP2@@ --secret snapmaker_api_key_2"')
+    t = t.replace('snapmaker_gcode_preview.py @@IP2@@"', 'snapmaker_gcode_preview.py @@IP2@@ --tag 2"')
+    t = t.replace("send_snapmaker_pulse", "send_snapmaker_pulse_2")
+    t = t.replace("shell_command.snapmaker_gcode_preview", "shell_command.snapmaker_gcode_preview_2")
+    t = t.replace('  snapmaker_gcode_preview: "', '  snapmaker_gcode_preview_2: "')
+    t = t.replace("packages/snapmaker_u1.yaml", "packages/snapmaker_u1_printer2.yaml")
+    t = t.replace("Snapmaker U1 - ", "Snapmaker U1 #2 - ")
+    t = re.sub(r"Snapmaker U1 (?!2 |#2 )", "Snapmaker U1 2 ", t)
+    t = re.sub(r"(?<!notify\.)snapmaker_u1_(?!2_)", "snapmaker_u1_2_", t)
+    for key, mark in (("camera", "@@CAM2@@"), ("ip", "@@IP2@@"), ("prefix", "@@PFX2@@")):
+        t = t.replace(mark, new[key])
+    return t
+
+
+def two_view_dashboard(text, old, new):
+    """Return the dashboard with a second view for printer 2 (a copy of view 1 with printer 2 values)."""
+    head, body = text.split("\nviews:\n", 1)
+    assert body.count("\n  - title:") == 0 and body.startswith("  - title:"), "expected exactly one view"
+    first = body.replace("  - title: 3D Printer", "  - title: Printer 1", 1)
+    second = second_printer(body, old, new)
+    second = second.replace("  - title: 3D Printer", "  - title: Printer 2", 1).replace("    path: printer\n", "    path: printer2\n", 1)
+    head = head.replace("\ntitle: Snapmaker U1", "\ntitle: Snapmaker U1", 1)
+    note = "# Two printers: view 'Printer 1' and view 'Printer 2' (printer 2 uses the snapmaker_u1_2_* helper sensors).\n"
+    return head.replace("\n\ntitle:", "\n" + note + "\ntitle:", 1) + "\nviews:\n" + first.rstrip("\n") + "\n" + second
+
+
 def drop_block(text, name):
     return re.sub(rf"[ \t]*# BEGIN:{name}\n.*?[ \t]*# END:{name}\n\n?", "", text, flags=re.S)
 
@@ -74,6 +111,8 @@ def main():
     p = argparse.ArgumentParser(add_help=True)
     p.add_argument("--prefix"); p.add_argument("--ip"); p.add_argument("--camera")
     p.add_argument("--phone"); p.add_argument("--email"); p.add_argument("--speaker")
+    p.add_argument("--ip2", help="second printer: IP address"); p.add_argument("--prefix2", help="second printer: entity prefix")
+    p.add_argument("--camera2", help="second printer: camera entity ID")
     a = p.parse_args()
     interactive = a.prefix is None
 
@@ -87,7 +126,19 @@ def main():
         phone = ask("4/6  Phone notify entity (optional)", "e.g. notify.pixel_9 - press Enter to skip", required=False)
         email = ask("5/6  Email notify entity (optional)", "The SMTP recipient entity, e.g. notify.my_gmail - Enter to skip", required=False)
         speaker = ask("6/6  Speaker notify entity (optional)", "e.g. notify.living_room_announce - Enter to skip", required=False)
+        second = None
+        if input("\nDo you have a SECOND printer to add? (y/N) ").strip().lower().startswith("y"):
+            p2 = clean_prefix(ask("2nd printer entity prefix", "Entity ID of its 'Current print state' sensor"))
+            ip2 = ask("2nd printer IP address", "e.g. 192.168.1.51")
+            cam2 = ask("2nd printer camera entity ID", "Its own Generic Camera", "camera.snapmaker_u1_camera_2")
+            second = {"prefix": p2, "ip": ip2, "camera": cam2 if cam2.startswith("camera.") else "camera." + cam2}
     else:
+        second = None
+        if a.ip2 or a.prefix2:
+            if not (a.ip2 and a.prefix2):
+                sys.exit("For a second printer give both --ip2 and --prefix2 (and --camera2).")
+            c2 = a.camera2 or "camera.snapmaker_u1_camera_2"
+            second = {"prefix": clean_prefix(a.prefix2), "ip": a.ip2, "camera": c2 if c2.startswith("camera.") else "camera." + c2}
         prefix, ip = clean_prefix(a.prefix), a.ip or ""
         camera = a.camera or "camera.snapmaker_u1_camera"
         phone, email, speaker = a.phone or "", a.email or "", a.speaker or ""
@@ -101,6 +152,9 @@ def main():
             sys.exit(f"The {label} value should look like notify.something (got '{value}').")
 
     shutil.rmtree(OUT, ignore_errors=True)
+    tokens = {"prefix": "YOURPRINTER", "camera": "YOUR_CAMERA_ENTITY_ID", "ip": "PRINTER_IP"}
+    PER_PRINTER = {"packages/snapmaker_u1.yaml", "automations/camera_keepalive.yaml", "automations/save_thumbnail.yaml",
+                   "automations/gcode_preview.yaml", "automations/print_finished.yaml", "automations/progress_emails.yaml"}
     for rel in FILES:
         if rel.endswith("progress_emails.yaml") and not email:
             continue
@@ -110,11 +164,23 @@ def main():
         for name, value in (("PHONE", phone), ("EMAIL", email), ("SPEAKER", speaker)):
             if not value:
                 text = drop_block(text, name)
-        for token, value in (("YOUR_CAMERA_ENTITY_ID", camera), ("YOUR_PHONE_NOTIFY", phone),
-                             ("YOUR_EMAIL_NOTIFY", email), ("YOUR_SPEAKER_NOTIFY", speaker),
-                             ("YOURPRINTER", prefix), ("PRINTER_IP", ip)):
-            text = text.replace(token, value)
-        text = text.replace("media-source://camera/camera.", "media-source://camera/camera.")  # no-op, keeps ids intact
+        def fill_in(t, cam, pfx, addr):
+            for token, value in (("YOUR_CAMERA_ENTITY_ID", cam), ("YOUR_PHONE_NOTIFY", phone),
+                                 ("YOUR_EMAIL_NOTIFY", email), ("YOUR_SPEAKER_NOTIFY", speaker),
+                                 ("YOURPRINTER", pfx), ("PRINTER_IP", addr)):
+                t = t.replace(token, value)
+            return t
+        if second and rel.startswith("dashboards/"):
+            text = two_view_dashboard(text, tokens, second)
+        if second and rel in PER_PRINTER:
+            # printer 2 gets its own copy, with its own values already filled in
+            t2 = second_printer(text, tokens, second)
+            for token, value in (("YOUR_PHONE_NOTIFY", phone), ("YOUR_EMAIL_NOTIFY", email),
+                                 ("YOUR_SPEAKER_NOTIFY", speaker)):
+                t2 = t2.replace(token, value)
+            with open(dst.replace(".yaml", "_printer2.yaml"), "w", encoding="utf-8") as fh:
+                fh.write(t2)
+        text = fill_in(text, camera, prefix, ip)
         open(dst, "w", encoding="utf-8").write(text)
 
     print("\nDone. Your customized files are in:", OUT)

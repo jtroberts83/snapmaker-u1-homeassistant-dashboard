@@ -2,6 +2,9 @@
 
 Every change to this repo is committed with a version bump (semantic versioning: MAJOR.MINOR.PATCH). The current version is in [`VERSION`](VERSION).
 
+## 1.9.0
+- New: second-printer support. `customize.py` takes `--prefix2 --ip2 --camera2` (or asks) and writes a `_printer2` copy of the package and of every automation (helper sensors `snapmaker_u1_2_*`, pictures `snapmaker_u1_2_*.png`, shell commands `*_2`, secret `snapmaker_api_key_2`), and both dashboards get a view per printer. The camera script gained `--secret NAME` and the preview script `--tag 2`; existing single-printer installs are unaffected. See INSTALL.md section 12.
+
 ## 1.8.0
 - Changed: the two small preview thumbnails are now ONE larger window on both dashboards that rotates every 6 seconds through the slicer thumbnail, the whole model from a second angle, and the layer-by-layer view, with a small caption on each. **Replace both dashboards** (desktop.yaml, phone.yaml); no change to the script or package.
 

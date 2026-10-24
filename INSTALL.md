@@ -23,6 +23,7 @@ paste text into a file. No programming.
 9. [Create the dashboards](#9-create-the-dashboards)
 10. [Final checklist](#10-final-checklist)
 11. [Customizing](#11-customizing)
+12. [Adding a second printer](#12-adding-a-second-printer)
 
 ---
 
@@ -383,3 +384,27 @@ If you leave the desktop dashboard on a monitor, you can stop the screen from di
 ### Updating later
 
 When this repository gets updates: read `CHANGELOG.md` to see what changed, download the repo again, run `customize.py` again, and re-copy the changed files (package → reload template entities or restart; automations and dashboards → re-paste). Some releases add attributes to the print-stage sensor in the package, so always update the package before the dashboards.
+
+## 12. Adding a second printer
+
+Everything is built so two U1s run side by side without clashing. The second printer gets its own helper sensors (`snapmaker_u1_2_*`), its own preview pictures (`snapmaker_u1_2_*.png`), its own shell commands and automations (named "Snapmaker U1 #2 - ..."), and its own API key line. The scripts are shared: nothing is copied.
+
+**Before you start:** add printer 2 to Home Assistant like printer 1 (step 3), create its own Generic Camera (step 6a), and note its entity prefix, IP address and camera entity ID.
+
+**Easy way.** Run `customize.py` again and answer `y` to "Do you have a SECOND printer to add?", or in one line:
+
+```
+python3 customize.py --prefix snapmaker_u1 --ip 192.168.1.50 --camera camera.snapmaker_u1_camera \
+    --prefix2 snapmaker_u1_b --ip2 192.168.1.51 --camera2 camera.snapmaker_u1_b_camera
+```
+
+In `build/` you now also get a `_printer2` copy of the package and of every automation, and each dashboard has two views, **Printer 1** and **Printer 2**.
+
+1. Copy `build/packages/snapmaker_u1_printer2.yaml` to `/config/packages/` next to the first package, and copy the two scripts again if you haven't got the latest ones (they gained `--secret` and `--tag`). Do a full restart.
+2. Add printer 2's API key to `/config/secrets.yaml` on its own line: `snapmaker_api_key_2: <printer 2 key>`.
+3. Create the five `*_printer2.yaml` automations like step 7.
+4. Paste the new two-view dashboards (they replace the old ones, printer 1 is unchanged).
+5. Test: `python3 /config/scripts/snapmaker_camera_pulse.py <PRINTER2_IP> --secret snapmaker_api_key_2` and `python3 /config/scripts/snapmaker_gcode_preview.py <PRINTER2_IP> --tag 2 --foreground`.
+
+**By hand.** Copy the package and each automation, then in the copy: use `snapmaker_u1_2_` in place of `snapmaker_u1_` (names, unique IDs, image file names), `send_snapmaker_pulse_2` and `snapmaker_gcode_preview_2` for the shell commands (adding `--secret snapmaker_api_key_2` to the pulse line and `--tag 2` to the preview line), and printer 2's own prefix, IP and camera.
+

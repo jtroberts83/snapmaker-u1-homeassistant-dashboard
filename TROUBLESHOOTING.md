@@ -94,6 +94,12 @@ The two extra previews are drawn by `scripts/snapmaker_gcode_preview.py`, starte
 
 **Screen keeps going to sleep.** The optional `www/snapmaker-keep-awake.js` only works when Home Assistant is opened over HTTPS or at localhost, not at `http://<ip>:8123` (see INSTALL.md section 11). Open the browser console and look for `[snapmaker-keep-awake]`.
 
+## Second printer
+
+- **Printer 2 pictures or sensors show printer 1's data.** Make sure the second printer's files are the `_printer2` ones from `customize.py` (they use `snapmaker_u1_2_*` names) and that you did a full restart after adding the second package.
+- **Camera keep-alive fails for printer 2 with "No API key found".** Add `snapmaker_api_key_2: <key>` to `/config/secrets.yaml`; the second shell command passes `--secret snapmaker_api_key_2`.
+- **Previews for printer 2 never appear.** Run `python3 /config/scripts/snapmaker_gcode_preview.py <PRINTER2_IP> --tag 2 --foreground`. It writes `snapmaker_u1_2_model_angle.png` and `snapmaker_u1_2_progress.png` and keeps its cache in `/config/.snapmaker_preview_2`.
+
 ## Page background not applying
 
 The background is set on the view (`background:` in the dashboard YAML). Make sure the dashboard is in YAML/raw mode with the view intact, and that you pasted the whole file. Alternatives are in `docs/background_options.html`.
