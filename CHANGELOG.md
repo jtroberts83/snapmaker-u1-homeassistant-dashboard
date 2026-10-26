@@ -2,6 +2,9 @@
 
 Every change to this repo is committed with a version bump (semantic versioning: MAJOR.MINOR.PATCH). The current version is in [`VERSION`](VERSION).
 
+## 1.12.0
+- Changed: the live camera card is now a small page (`www/snapmaker-cam.html`) that reloads the printer's `monitor.jpg` every 1.5 seconds, instead of the Home Assistant camera card (10 s at best, sometimes stuck). **Copy `www/snapmaker-cam.html` to `/config/www/` and re-paste both dashboards.** Needs Home Assistant to be opened over plain http on your home network; for https or remote use, switch the card back to a `picture-entity` with `camera_view: auto`.
+
 ## 1.11.1
 - Fix: the live camera card on both dashboards now uses `camera_view: auto` instead of `live`. With a Generic Camera that only serves still pictures, `live` could leave the card showing a stale frame for minutes; `auto` refreshes it about every 10 seconds. Re-paste the dashboards.
 

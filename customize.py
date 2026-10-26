@@ -41,6 +41,7 @@ FILES = [
     "automations/final_snapshot.yaml",
     "automations/print_finished.yaml",
     "automations/progress_emails.yaml",
+    "www/snapmaker-cam.html",
     "dashboards/desktop.yaml",
     "dashboards/phone.yaml",
 ]

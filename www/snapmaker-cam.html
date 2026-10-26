@@ -1,0 +1,20 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<style>html,body{margin:0;height:100%;background:#0b0f14;overflow:hidden}img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}</style></head>
+<body><img id="a"><img id="b" style="visibility:hidden">
+<script>
+// Snapmaker U1 live camera: reloads the printer's monitor.jpg every ~1.5 s (the printer makes a new picture about every 3 s).
+// Use:  /local/snapmaker-cam.html?ip=192.168.1.50   (optional &ms=1500 for the refresh interval, &port=80)
+var q = new URLSearchParams(location.search), ip = q.get('ip'), ms = parseInt(q.get('ms') || '1500', 10), port = q.get('port') || '80';
+var shown = document.getElementById('a'), hidden = document.getElementById('b');
+function next() {
+  hidden.onload = function () {
+    hidden.style.visibility = 'visible'; shown.style.visibility = 'hidden';
+    var t = shown; shown = hidden; hidden = t;
+    setTimeout(next, ms);
+  };
+  hidden.onerror = function () { setTimeout(next, 5000); };
+  hidden.src = 'http://' + ip + ':' + port + '/server/files/camera/monitor.jpg?t=' + Date.now();
+}
+if (ip) next();
+</script></body></html>

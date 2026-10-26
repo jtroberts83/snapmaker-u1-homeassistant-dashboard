@@ -231,6 +231,10 @@ Step 5 already installed two pieces: the script (`/config/scripts/snapmaker_came
 
 If you see *"Action shell_command.send_snapmaker_pulse not found"*, you haven't done a **full restart** since step 5. If you get `returncode: 1`, or the output says the handshake was refused or no API key was found, see [TROUBLESHOOTING.md](TROUBLESHOOTING.md#camera).
 
+### 6c-2. Near-live camera card (copy one file)
+
+The dashboards show the camera with a small page that reloads the printer's picture every 1.5 seconds (the printer makes a new one about every 3 seconds). The built-in Home Assistant camera card can only refresh every 10 seconds, or get stuck. Copy **`www/snapmaker-cam.html`** (`build/www/snapmaker-cam.html` if you used customize.py) to **`/config/www/snapmaker-cam.html`**. The dashboard card is already set up to use it, with your printer's IP. It loads the picture straight from the printer, so it works on your home network over plain `http://` Home Assistant addresses (not over https or remote access).
+
 ### 6d. Keep it alive automatically
 
 You'll do this in step 7 with `automations/camera_keepalive.yaml` (calls the script every minute).

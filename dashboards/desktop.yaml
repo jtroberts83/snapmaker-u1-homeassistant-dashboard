@@ -45,14 +45,9 @@ views:
                           entity: YOUR_CAMERA_ENTITY_ID
                           state_not: [unavailable, unknown]
                         card:
-                          type: picture-entity
-                          entity: YOUR_CAMERA_ENTITY_ID
-                          camera_view: auto
-                          aspect_ratio: 16x9
-                          show_name: false
-                          show_state: false
-                          tap_action:
-                            action: more-info
+                          type: iframe
+                          url: /local/snapmaker-cam.html?ip=PRINTER_IP
+                          aspect_ratio: 56.25%
                           card_mod:
                             style: |
                               {% set c = {'printing':'#3b82f6','paused':'#f59e0b','complete':'#22c55e','cancelled':'#a3a3a3','error':'#ef4444','standby':'#64748b'} %}
