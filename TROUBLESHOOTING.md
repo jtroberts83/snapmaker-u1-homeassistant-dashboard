@@ -115,6 +115,7 @@ The background is set on the view (`background:` in the dashboard YAML). Make su
 
 - **Gmail rejects login**: use a 16-character *App Password* (needs 2-Step Verification), not your normal password. SMTP: `smtp.gmail.com`, port 587, STARTTLS.
 - **No image in the email**: confirm the camera entity name in the automation matches your camera.
+- **The email photo is missing, old or shows an empty bed.** The photo is taken by the *Final Snapshot* automation at 99 % progress and saved to `/media/snapmaker_u1_done.jpg`. Check that automation is on, that `/media` exists (INSTALL.md section 7), and look at its trace after a print. A print that jumps from under 99 % straight to complete still triggers it, but a very short print may be photographed late.
 - **Phone push has no image/tap action**: the plain notify entity route does not support them; use the mobile app `notify.mobile_app_*` service if you want those.
 - Check Settings, Automations, Traces for the failing step.
 

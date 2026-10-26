@@ -239,7 +239,7 @@ You'll do this in step 7 with `automations/camera_keepalive.yaml` (calls the scr
 
 ## 7. Create the automations
 
-You have five automation files in `build/automations/`. Creating each one is the same routine:
+You have six automation files in `build/automations/`. Creating each one is the same routine:
 
 1. **Settings → Automations & scenes → Create automation → Create new automation.**
 2. Click **⋮ (top right) → Edit in YAML.**
@@ -251,16 +251,19 @@ You have five automation files in `build/automations/`. Creating each one is the
 | `camera_keepalive.yaml` | Keeps the camera awake (every minute) | step 6 |
 | `save_thumbnail.yaml` | Saves a copy of the print preview while printing so it stays visible after the print completes | step 5 |
 | `gcode_preview.yaml` | Draws the extra print previews from the G-code: the whole model from a second angle and a layer-by-layer picture that updates every 5 minutes while printing; the dashboard rotates them with the slicer thumbnail in one large preview window | step 5 |
+| `final_snapshot.yaml` | Takes the photo for the finished email at 99 % progress, while the part is still on the bed (the printer lowers the bed once the job completes) | step 6 |
 | `print_finished.yaml` | When a print completes, waits for the bed to cool to 40 °C, then emails you the photo and stats, pushes to your phone, adds a Home Assistant notification and announces on a speaker (any part you left blank is already removed) | step 8 for email |
 | `progress_emails.yaml` | Emails a snapshot + stats at 1 %, 25 %, 50 % and 75 % | step 8 |
 
-**Check:** the five automations are listed and switched on. The camera keep-alive will now keep your camera picture fresh. The preview pictures appear at the start of your next print (the first one takes a few seconds to a minute to draw, longer for very large files) in `/config/www/` as `snapmaker_u1_model_angle.png` and `snapmaker_u1_progress.png`.
+**Check:** the six automations are listed and switched on. The camera keep-alive will now keep your camera picture fresh. The preview pictures appear at the start of your next print (the first one takes a few seconds to a minute to draw, longer for very large files) in `/config/www/` as `snapmaker_u1_model_angle.png` and `snapmaker_u1_progress.png`.
 
 > **Choose the angles.** In `packages/snapmaker_u1.yaml`, add options to the `snapmaker_gcode_preview` line, for example `... PRINTER_IP --model-yaw 145 --model-pitch 32 --progress-yaw -35 --progress-pitch 32`. Yaw 0 looks from the front of the printer, 90 from the left, 180 from the back, -90 from the right. Pitch is how high you look down from (0 level, 90 straight down).
 >
 > **Hide supports.** Add `--progress-hide-supports` to leave support structures out of the layer-by-layer preview (and `--model-hide-supports` for the second-angle picture). This relies on the slicer writing `;TYPE:Support` comments in the G-code (Orca, Prusa and Cura do); if there are none, supports can't be told apart and everything is drawn. Needs a full restart after changing the line.
 >
 > **Colors.** Previews use each toolhead's filament color (from the printer, or the G-code header). Add `--generic-colors` for the old blue-to-orange height gradient.
+
+> **Photo folder.** The final photo is also saved to `/media/` so the email can attach it. Home Assistant OS has that folder already; on other installs make sure `/media` exists and is mounted, or set `homeassistant: media_dirs: local: /config/media` in `configuration.yaml` and change `/media/` to that folder in `final_snapshot.yaml`.
 
 > **Test the print-finished flow without printing:** open the automation → **⋮ → Run actions**. (It will say the print is not complete and stop, which is normal; a real test happens at the end of your next print.)
 

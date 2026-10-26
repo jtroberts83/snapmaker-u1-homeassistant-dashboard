@@ -22,7 +22,7 @@ in each toolhead, bed-cooling progress, a print-stage banner, and email/phone/sp
 - Print preview (thumbnail), on both desktop and phone, that keeps showing after the print completes, with a placeholder when there is no job. It is one large window that **rotates every 6 seconds** through the slicer thumbnail, the whole model from a second angle, and a picture that **fills in layer by layer** (refreshed every 5 minutes), in the real filament colors, the last two drawn from the print's G-code
 - Pause / Resume buttons and an **E-STOP with a confirmation prompt**
 - Lifetime stats with **100 fun comparisons** that grow as your filament total grows ("≈ 2.3× the length of the Titanic" … all the way to light-years)
-- Notifications when a print finishes (after the bed has cooled): **email with a photo**, phone push, persistent notification, optional spoken announcement
+- Notifications when a print finishes (after the bed has cooled): **email with a photo taken at 99 % progress, while the part is still on the bed**, phone push, persistent notification, optional spoken announcement
 - **Timelapse downloads**: a card listing the printer's recorded timelapse videos, newest first, with a one-tap **Download latest** link (needs the printer on the network)
 - **Two printers?** Fully supported: `customize.py` can build a second set of sensors and automations plus a dashboard with a view per printer (INSTALL.md section 12)
 - Snapshot emails at **1 %, 25 %, 50 % and 75 %** of every print

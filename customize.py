@@ -38,6 +38,7 @@ FILES = [
     "automations/camera_keepalive.yaml",
     "automations/save_thumbnail.yaml",
     "automations/gcode_preview.yaml",
+    "automations/final_snapshot.yaml",
     "automations/print_finished.yaml",
     "automations/progress_emails.yaml",
     "dashboards/desktop.yaml",
@@ -154,7 +155,8 @@ def main():
     shutil.rmtree(OUT, ignore_errors=True)
     tokens = {"prefix": "YOURPRINTER", "camera": "YOUR_CAMERA_ENTITY_ID", "ip": "PRINTER_IP"}
     PER_PRINTER = {"packages/snapmaker_u1.yaml", "automations/camera_keepalive.yaml", "automations/save_thumbnail.yaml",
-                   "automations/gcode_preview.yaml", "automations/print_finished.yaml", "automations/progress_emails.yaml"}
+                   "automations/gcode_preview.yaml", "automations/final_snapshot.yaml", "automations/print_finished.yaml",
+                   "automations/progress_emails.yaml"}
     for rel in FILES:
         if rel.endswith("progress_emails.yaml") and not email:
             continue

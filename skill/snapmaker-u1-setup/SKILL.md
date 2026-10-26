@@ -117,6 +117,7 @@ missing or the browser needs a hard refresh. "Entity not found" means a prefix o
 - **Keep the screen awake** (`www/snapmaker-keep-awake.js`, INSTALL.md section 11): only offer it to a user who leaves the desktop dashboard on a monitor. Browsers allow it only over HTTPS or at localhost, so ask how they open Home Assistant. If it is plain `http://<ip>:8123`, explain the Chrome/Edge "treat insecure origin as secure" flag, PowerToys Awake, or Fully Kiosk Browser instead. Adding the resource is a dashboard-resource change, so ask first.
 - **A second printer** (INSTALL.md section 12): ask for its entity prefix, IP and camera entity ID (never its API key). With a shell, run `customize.py` with `--prefix2 --ip2 --camera2`; otherwise write the `_printer2` files using the renames in section 12. Printer 2's API key goes in `/config/secrets.yaml` as `snapmaker_api_key_2`, entered by the user. Do not touch printer 1's files.
 - **Timelapse downloads**: the package's `Snapmaker U1 Timelapse Files` REST sensor and `sensor.snapmaker_u1_latest_timelapse` feed the dashboard's Timelapse videos card. If it says none found, check `http://<printer-ip>:7125/server/files/list?root=camera` (the U1 keeps videos in the `camera` file root) and that timelapse is switched on for prints.
+- **Final photo**: `automations/final_snapshot.yaml` photographs the print at 99 % and saves it to `/config/www` and `/media`; the Print Finished email attaches the `/media` copy. If the email photo is missing, check `/media` exists (INSTALL.md section 7).
 
 ## Updating an existing install
 

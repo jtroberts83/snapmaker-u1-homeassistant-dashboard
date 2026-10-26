@@ -2,6 +2,9 @@
 
 Every change to this repo is committed with a version bump (semantic versioning: MAJOR.MINOR.PATCH). The current version is in [`VERSION`](VERSION).
 
+## 1.11.0
+- Changed: the finished-print photo is now taken at 99 % progress by a new automation (`automations/final_snapshot.yaml`), not when the print completes (the bed has already been lowered by then and the part was out of view). The Print Finished email attaches that saved photo from `/media`. **Add the new automation and update `print_finished.yaml`.**
+
 ## 1.10.0
 - New: timelapse videos. The package gets a `Snapmaker U1 Timelapse Files` REST sensor (reads the U1's `camera` file root every 5 minutes) and `sensor.snapmaker_u1_latest_timelapse` with download links, and both dashboards get a **Timelapse videos** card (newest video as a download link plus the five before it). **Update the package, restart, then the dashboards.** Second-printer files get their own `snapmaker_u1_2_*` copies automatically.
 

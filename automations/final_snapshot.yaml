@@ -1,0 +1,35 @@
+# Snapmaker U1 - final snapshot
+# Takes the photo for the "Print Finished" email at 99 % progress, while the finished part is still on the
+# bed and before the printer changes to "complete" (when it lowers the bed and the part is out of view).
+# Saves it twice: /config/www/snapmaker_u1_done.jpg (for the Home Assistant notification) and
+# /media/snapmaker_u1_done.jpg (the email attaches it from there, as a local media file).
+# Add via Settings -> Automations & scenes -> Create automation -> (three dots) -> Edit in YAML.
+
+alias: Snapmaker U1 - Final Snapshot
+description: Photographs the nearly finished print (at 99 % progress) for the print-finished email and notification.
+mode: single
+max_exceeded: silent
+
+triggers:
+  - trigger: numeric_state
+    entity_id: sensor.YOURPRINTER_progress
+    above: 98.9
+
+conditions:
+  - condition: state
+    entity_id: sensor.YOURPRINTER_current_print_state
+    state: printing
+
+actions:
+  - action: camera.snapshot
+    continue_on_error: true
+    target:
+      entity_id: YOUR_CAMERA_ENTITY_ID
+    data:
+      filename: /media/snapmaker_u1_done.jpg
+  - action: camera.snapshot
+    continue_on_error: true
+    target:
+      entity_id: YOUR_CAMERA_ENTITY_ID
+    data:
+      filename: /config/www/snapmaker_u1_done.jpg

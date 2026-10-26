@@ -1,5 +1,7 @@
 # Snapmaker U1 - Print Finished
 #
+# The finished-print photo comes from automations/final_snapshot.yaml (taken at 99 %, before the bed drops).
+#
 # When a print completes: waits for the bed to cool to 40 C (104 F) or below, then
 #   1. emails you with the finished-print photo in the body   (optional: needs the SMTP integration)
 #   2. pushes to your phone                                   (optional)
@@ -29,13 +31,8 @@ triggers:
       - unknown
 
 actions:
-  # Photo of the finished print for the persistent notification (non-fatal if it fails)
-  - action: camera.snapshot
-    continue_on_error: true
-    target:
-      entity_id: YOUR_CAMERA_ENTITY_ID
-    data:
-      filename: /config/www/snapmaker_u1_done.jpg
+  # The photo is NOT taken here: by now the bed has been lowered. The 'Snapmaker U1 - Final Snapshot'
+  # automation takes it at 99 % progress and saves it as snapmaker_u1_done.jpg (in /config/www and /media).
 
   # Capture job details now, in case the sensors reset while the bed cools
   - variables:
@@ -101,7 +98,7 @@ actions:
         {% if cooled %}{{ job }} is done and the bed has cooled to {{ bed_c }}°C ({{ bed_f }}°F) - safe to remove. {{ layers }} layers, {{ filament }} m of filament.{% else %}{{ job }} is done, but the bed is still warm ({{ bed_c }}°C / {{ bed_f }}°F). {{ layers }} layers, {{ filament }} m of filament.{% endif %}
 
   # BEGIN:EMAIL
-  # Email with the live camera photo embedded in the body
+  # Email with the final photo (saved at 99 %) embedded in the body
   - action: smtp.send_message
     continue_on_error: true
     target:
@@ -111,7 +108,7 @@ actions:
       message: "{{ msg }} In perspective: {{ fun }}"
       attachments:
         - media_source:
-            media_content_id: media-source://camera/YOUR_CAMERA_ENTITY_ID
+            media_content_id: media-source://media_source/local/snapmaker_u1_done.jpg
             media_content_type: image/jpeg
           filename: snapmaker_u1_done.jpg
           content_id: snapmaker_u1_done
