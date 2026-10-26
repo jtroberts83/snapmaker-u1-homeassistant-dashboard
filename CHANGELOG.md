@@ -2,6 +2,9 @@
 
 Every change to this repo is committed with a version bump (semantic versioning: MAJOR.MINOR.PATCH). The current version is in [`VERSION`](VERSION).
 
+## 1.10.0
+- New: timelapse videos. The package gets a `Snapmaker U1 Timelapse Files` REST sensor (reads the U1's `camera` file root every 5 minutes) and `sensor.snapmaker_u1_latest_timelapse` with download links, and both dashboards get a **Timelapse videos** card (newest video as a download link plus the five before it). **Update the package, restart, then the dashboards.** Second-printer files get their own `snapmaker_u1_2_*` copies automatically.
+
 ## 1.9.0
 - New: second-printer support. `customize.py` takes `--prefix2 --ip2 --camera2` (or asks) and writes a `_printer2` copy of the package and of every automation (helper sensors `snapmaker_u1_2_*`, pictures `snapmaker_u1_2_*.png`, shell commands `*_2`, secret `snapmaker_api_key_2`), and both dashboards get a view per printer. The camera script gained `--secret NAME` and the preview script `--tag 2`; existing single-printer installs are unaffected. See INSTALL.md section 12.
 

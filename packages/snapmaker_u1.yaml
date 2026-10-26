@@ -16,6 +16,7 @@
 #    - sensor.snapmaker_u1_bed_peak_temp_f         start point of the bed-cooling progress bar
 #    - 5 trend (derivative) sensors                tool 1-4 + bed, deg F per minute
 #    - 12 REST sensors                             filament color / type / vendor per toolhead
+#    - Timelapse list sensor + sensor.snapmaker_u1_latest_timelapse   download links for the printer's timelapse videos
 #
 #  Values you must change: the word YOURPRINTER (your Moonraker entity prefix) and PRINTER_IP.
 #  customize.py does this for you; see INSTALL.md step 4.
@@ -152,6 +153,32 @@ template:
           {% if b is none %}{{ p if p is not none else 0 }}
           {% elif b <= 104 or p is none %}{{ b | round(1) }}
           {% else %}{{ [b, p] | max | round(1) }}{% endif %}
+
+  # Timelapse videos recorded by the printer: newest first, each with a direct download link
+  - sensor:
+      - name: "Snapmaker U1 Latest Timelapse"
+        unique_id: snapmaker_u1_latest_timelapse
+        icon: mdi:movie-open-play
+        availability: "{{ states('sensor.snapmaker_u1_timelapse_files') not in ['unavailable', 'unknown'] }}"
+        state: >
+          {% set f = state_attr('sensor.snapmaker_u1_timelapse_files', 'result') or [] %}
+          {% set ns = namespace(best=none) %}
+          {% for x in f if x.path.lower().endswith('.mp4') %}
+          {% if ns.best is none or x.modified > ns.best.modified %}{% set ns.best = x %}{% endif %}
+          {% endfor %}
+          {{ ns.best.path if ns.best is not none else 'none' }}
+        attributes:
+          videos: >
+            {% set f = state_attr('sensor.snapmaker_u1_timelapse_files', 'result') or [] %}
+            {% set v = f | selectattr('path', 'string') | list %}
+            {% set ns = namespace(items=[]) %}
+            {% for x in v | sort(attribute='modified', reverse=true) if x.path.lower().endswith('.mp4') %}
+            {% set ns.items = ns.items + [{'name': x.path | replace('.mp4', '') | replace('_', ' '),
+               'url': 'http://PRINTER_IP:7125/server/files/camera/' ~ (x.path | urlencode),
+               'mb': ((x.size | float(0)) / 1048576) | round(1),
+               'date': x.modified | float(0) | timestamp_custom('%b %d, %H:%M')}] %}
+            {% endfor %}
+            {{ ns.items[:10] }}
 
 # ----- Trend sensors (deg F per minute) -------------------------------------------------
 # Rule used by the dashboard for tools: above +2 = Heating, below -2 = Cooling.
@@ -291,3 +318,18 @@ rest:
         value_template: >
           {% set v = (value_json.result.status.print_task_config.filament_vendor | default([]))[3] | default('NONE') %}
           {{ 'none' if v in ['NONE', ''] else v }}
+
+  # The printer's timelapse folder (every video it has recorded; the U1 keeps them in its "camera" file root)
+  - resource: http://PRINTER_IP:7125/server/files/list?root=camera
+    scan_interval: 300
+    sensor:
+      - name: "Snapmaker U1 Timelapse Files"
+        unique_id: snapmaker_u1_timelapse_files
+        icon: mdi:movie-open
+        value_template: >
+          {% set ns = namespace(n=0) %}
+          {% for x in value_json.result if x.path is string and x.path.lower().endswith('.mp4') %}{% set ns.n = ns.n + 1 %}{% endfor %}
+          {{ ns.n }}
+        json_attributes_path: "$"
+        json_attributes:
+          - result

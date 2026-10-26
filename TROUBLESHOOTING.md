@@ -94,6 +94,13 @@ The two extra previews are drawn by `scripts/snapmaker_gcode_preview.py`, starte
 
 **Screen keeps going to sleep.** The optional `www/snapmaker-keep-awake.js` only works when Home Assistant is opened over HTTPS or at localhost, not at `http://<ip>:8123` (see INSTALL.md section 11). Open the browser console and look for `[snapmaker-keep-awake]`.
 
+## Timelapse videos
+
+- **"No timelapse videos found".** The printer only records a video when timelapse is switched on for the print. Check `http://<PRINTER_IP>:7125/server/files/list?root=camera` in a browser; it should list `.mp4` files (the U1 keeps them in a read-only file root called `camera`). If the root name is different on your firmware, check `http://<PRINTER_IP>:7125/server/files/roots` and change `root=camera` and `/server/files/camera/` in the package.
+- **"Printer not connected".** The REST sensor `sensor.YOURPRINTER...timelapse_files` is unavailable: wrong IP in the package, or the printer is off. It refreshes every 5 minutes, so a new video appears within about 5 minutes of the print finishing.
+- **The link plays the video instead of saving it.** The browser opens the file in its player; use its download button or right-click, Save video as. A page on another address cannot force a download, so this is normal.
+- **Home Assistant warns about large attributes.** The timelapse list is stored as an attribute and grows with every video (the printer also lists the cover pictures). To keep the database small, add `sensor.snapmaker_u1_timelapse_files` to your `recorder:` `exclude:` entities.
+
 ## Second printer
 
 - **Printer 2 pictures or sensors show printer 1's data.** Make sure the second printer's files are the `_printer2` ones from `customize.py` (they use `snapmaker_u1_2_*` names) and that you did a full restart after adding the second package.
