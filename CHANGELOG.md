@@ -2,6 +2,9 @@
 
 Every change to this repo is committed with a version bump (semantic versioning: MAJOR.MINOR.PATCH). The current version is in [`VERSION`](VERSION).
 
+## 1.11.1
+- Fix: the live camera card on both dashboards now uses `camera_view: auto` instead of `live`. With a Generic Camera that only serves still pictures, `live` could leave the card showing a stale frame for minutes; `auto` refreshes it about every 10 seconds. Re-paste the dashboards.
+
 ## 1.11.0
 - Changed: the finished-print photo is now taken at 99 % progress by a new automation (`automations/final_snapshot.yaml`), not when the print completes (the bed has already been lowered by then and the part was out of view). The Print Finished email attaches that saved photo from `/media`. **Add the new automation and update `print_finished.yaml`.**
 

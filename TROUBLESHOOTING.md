@@ -26,6 +26,7 @@ Find your symptom below. Most problems come from a wrong entity prefix, a missin
    - **"WebSocket handshake refused"**: the API key or the printer IP is wrong. Re-copy the key from `http://<PRINTER_IP>`.
    - **"Connection Error"**: Home Assistant cannot reach the printer on port 80. Check the IP and network.
    - Connects but still no picture: the firmware may use a different method or parameters. Open `http://<PRINTER_IP>/` in a browser, open the developer tools Network tab, and watch the websocket messages the Snapmaker web UI sends when you open the camera view. Copy the method name and params into the script.
+3b. **The camera entity is fine but the dashboard picture barely updates.** The card must use `camera_view: auto` (it refreshes about every 10 seconds); `live` can stick on a stale frame for a camera that only serves still pictures. Dashboards from v1.11.1 on already use `auto`.
 4. Check `http://<PRINTER_IP>/server/files/camera/monitor.jpg` directly in a browser. If you see an image right after running the script, the keep-alive is fine and the problem is the Generic Camera setup (still image URL, frame rate 1).
 
 > The script uses the `camera.start_monitor` method with `domain: lan`, authenticated with your printer's API key. If a firmware update changes it, adjust it as above and please open an issue or PR with the working values.
